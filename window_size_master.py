@@ -36,7 +36,7 @@ class WSM:
         return int(self.factor * old)
 
     def resize_text(self, font, factor=1):
-        if font == 'RobotoSlab-Regular.ttf':
+        if font == 'res/fonts/RobotoSlab-Regular.ttf':
             return int((0.045 * self.size[0] + 4.286) * factor)
 
     def get_colors(self):
