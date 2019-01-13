@@ -3,17 +3,13 @@ from pygame.locals import *
 from win32api import GetKeyboardLayout, GetKeyState
 
 
-def default(*buts):
-    for i in buts:
-        i.set_Animation(0)
-
-
 # Для упрощения создания подобных элементов интерфейса (кнопок, которые
 # отличаются только текстом и расположением) аргументы передаются в словаре.
 # Описание ключей словаря ниже
 # positions координаты левого верхнего угла объекта - список
 # size размеры объекта - список
-# animations картинки для анимации кнопок - список
+# animations картинки для анимации кнопок - список, в нём передаются списки из картинки и кортежа нового положения
+# картинки, если такое нужно. Для нулевой анимации положение не указывается. Например, [[anim0], [anim1, (120, 230)]]
 # win окно, которое объявил pygame
 # picture просто картинка для RBase/фон диалогового окна
 # tap_buts - список номеров кнопок мыши, которыми можно нажать
@@ -35,7 +31,7 @@ def default(*buts):
 # В словарь нужны positions, picture, win
 class RBase:
     def __init__(self, slovar):  # Получает минимум аргументов
-        self.pos = slovar['positions']
+        self.pos = list(slovar['positions']) # В один момент в проекте я стал писать координаты в кортеже, а это плохо для выравнивания текста, поэтому мы конвертируем в словарь
         self.pic = slovar['picture']
         self.win = slovar['win']
 
@@ -47,13 +43,15 @@ class RBase:
 # В словарь нужны positions, win, size, animations, tap_buts
 class RButton:
     def __init__(self, slovar):
+        self.actived = True
         self.pos = slovar['positions']
         self.win = slovar['win']
         self.size = slovar['size']
         self.animations = slovar['animations']
         self.tap_buttons = slovar['tap_buts']
+        self.default = 0
         self.is_text = False  # оказывает, есть ли текст в кнопке, очень важно
-        self.pic = self.animations[0]  # В этой переменной хранится анимация,
+        self.pic = self.animations[0][0]  # В этой переменной хранится анимация,
         # которую надо показать сейчас
         self.text = ''  # На будущее
 
@@ -61,7 +59,7 @@ class RButton:
         # она добавится в конец, угадайте её номер
         self.animations.append(name)
 
-    def del_animation(self, num):  # далит картинку анимации по её номеру
+    def del_animation(self, num):  # yдалит картинку анимации по её номеру
         del self.animations[num]
 
     def set_text(self, slovar):  # Добавит текст в кнопку, в словаре настройки
@@ -70,22 +68,37 @@ class RButton:
         self.text = RText(slovar)  # Создаём текст, с этим классом
         # познакомитесь позже
 
+    def get_text_size(self):
+        return self.text.pic.get_width()
+
+    def move_center_text(self):
+        self.text.move_center(self.size[0])
+        self.text.move_center_y(self.size[1])
+
     def new_text(self, text1):  # Установит новый текст для кнопки
         self.text.new_text(text1)
 
     def set_animation(self, nom):  # Элементарный метод ставит нужную анимацию
-        self.pic = self.animations[nom]
+        if len(self.animations[nom]) != 1:
+            self.pos = self.animations[nom][1]
+        self.pic = self.animations[nom][0]
 
-    def check(self, m_pos, num_animation=0, old_animation=0):  # Проверяет,
+    def check(self, m_pos, num_animation=0):  # Проверяет,
         # наведен ли курсор мыши на кнопку, ставит нужную анимацию,
         # передаём положение курсора и номер нужной картинки
+        if not(self.actived):
+            return False
         if (self.pos[0] <= m_pos[0] <= self.pos[0] + self.size[0])\
                 and (self.pos[1] <= m_pos[1] <= self.pos[1] + self.size[1]):
             self.set_animation(num_animation)
             return True
         # Если курсор не наведён, ставит нулевую анимацию
-        self.set_animation(old_animation)
+        self.set_animation(self.default)
         return False
+
+    def set_closed_animation(self, anim):
+        self.closed = len(self.animations)
+        self.animations.append(anim)
 
     def is_tap(self, ev, m_pos, num_animation=0):  # Проверяет, нажали ли на
         # кнопку нужной клавишей мыши, ставит анимацию, которая нужна при
@@ -96,11 +109,22 @@ class RButton:
                 return True
         return False
 
+    def is_enter(self, ev):
+        if ev.type == KEYDOWN:
+            if ev.key == K_RETURN:
+                return True
+        return False
+
     def draw(self):  # Рисует кнопку в окне в нужных координатах, которые
         # заданы при объявлении, рисует текст кнопки, если такой есть
         self.win.blit(self.pic, self.pos)  # Сама картинка
         if self.is_text:  # Именно для этого нам нужен был флажок текста
             self.text.draw()  # Текст может рисоваться своим методом
+        if not(self.actived):
+            try:
+                self.win.blit(self.animations[self.closed], self.pos)
+            except Exception:
+                pass
 
 
 # Класс строки текста, наследует от базового его минимум методов, чтобы не
@@ -123,10 +147,44 @@ class RText(RBase):
         self.pic = self.font.render(text, True, self.color)
     # Напоминаю, что метод прорисовки есть в базовом классе
 
+    def move_text_x(self, indent):
+        self.pos[0] += indent
+
+    def move_text_y(self, indent):
+        self.pos[1] += indent
+
+    def move_center(self, needed_size):
+        popravka = (needed_size - self.pic.get_width()) // 2
+        self.move_text_x(popravka)
+
+    def move_center_y(self, needed_size):
+        popravka = (needed_size - self.pic.get_height()) // 2
+        self.move_text_y(popravka)
+
+    def move_right(self, needed_size):
+        popravka = (needed_size - self.pic.get_width())
+        self.move_text_x(popravka)
+
+
+class RTextFrame:
+    def __init__(self, slovar, slovar2):
+        self.base = RBase(slovar2)
+        self.text = RText(slovar)
+
+    def draw(self):
+        self.base.draw()
+        self.text.draw()
+
+    def move_center(self):
+        self.text.move_center(self.base.pic.get_width())
+
+    def move_center_y(self):
+        self.text.move_center_y(self.base.pic.get_height())
 
 # Класс заголовка, просто двойной текст, которым легче управлять,
 # чем просто двумя текстами
 # В словарь нужны positions, win, font, text_size, color, text, color2, indent
+
 class RTitle:
     def __init__(self, slovar):  # В словаре еще нужны второй текст и отступ
         self.text1 = RText(slovar)  # Создаём текст, который будет сверху
@@ -137,6 +195,7 @@ class RTitle:
         slovar['positions'] = [posits[0] + slovar['indent'], posits[1] +
                                slovar['indent']]
         self.text2 = RText(slovar)
+        self.ind = slovar['indent']
 
     def new_text(self, text):  # Если вдруг надо заменить текст
         self.text1.new_text(text)
@@ -146,16 +205,41 @@ class RTitle:
         self.text2.draw()
         self.text1.draw()
 
+    def move_center(self, needed_size):
+        self.text1.move_center(needed_size)
+        self.text2.move_center(needed_size)
+        ind1 = self.ind // 2
+        ind2 = self.ind - ind1
+        self.text1.move_text_x(-1 * ind1)
+        self.text2.move_text_x(ind2)
+
+    def move_center_y(self, needed_size):
+        self.text1.move_center_y(needed_size)
+        self.text2.move_center_y(needed_size)
+        ind1 = self.ind // 2
+        ind2 = self.ind - ind1
+        self.text1.move_text_y(-1 * ind1)
+        self.text2.move_text_y(ind2)
+
+    def move_right(self, needed_size):
+        self.text1.move_right(needed_size)
+        self.text2.move_right(needed_size)
+        ind1 = self.ind // 2
+        ind2 = self.ind - ind1
+        self.text1.move_text_x(-1 * ind1)
+        self.text2.move_text_x(ind2)
+
 
 # Класс элемента ввода текста, работает на 2 языка, снован на обычной кнопке
-# В словарь нужны positions, size, win, animations, active, tap_buts, active,
-# speed
+# В словарь нужны positions, size, win, animations, active, tap_buts, speed, max_len
 # В словарь2 нужны positions, win, font, text_size, color, text
 class RInput(RButton):
     def __init__(self, slovar, slovar2):
         # Добавляем несколько переменных на будущее и словари с сигналами
         # клавиатуры pygame, которым соответствуют символы 2 языков с
         # шифтом и без
+        self.slovar1 = slovar.copy()
+        self.slovar2 = slovar2.copy()
         self.speed = slovar['speed']
         self.shift = False
         self.timer = slovar['speed']
@@ -219,28 +303,35 @@ class RInput(RButton):
         super().__init__(slovar)
         self.set_text(slovar2)
 
-    def check2(self, mouse_pos, new_animat=2, old_animat=0):  # Новая проверка
+    def check2(self, mouse_pos, new_animat=2):  # Новая проверка
         # на наведение мыши, тк унаследованную портить нельзя
         if not(self.active):
-            self.check(mouse_pos, new_animat, old_animat)
+            self.check(mouse_pos, new_animat)
 
-    def actived(self, ev, mouse_pos):  # Метод активирует поле ввода и ставит
+    def is_active(self, ev, mouse_pos):  # Метод активирует поле ввода и ставит
         # нужную анимацию по нажатию мыши
         if not(self.active):
-            if self.is_tap(ev, mouse_pos, 2):
+            if self.is_tap(ev, mouse_pos, 1):
                 if self.first:
                     self.first = False
                     self.new_text('')
-                self.set_animation(2)
+                self.set_animation(1)
                 self.active = True
+                return True
             else:
                 self.set_animation(0)
+                return False
         else:
-            if self.is_tap(ev, mouse_pos, 0):
+            if self.is_tap(ev, mouse_pos, 0) or self.is_enter(ev):
                 self.set_animation(0)
                 self.active = False
+                return False
             else:
-                self.set_animation(2)
+                self.set_animation(1)
+                return True
+
+    def reset(self):
+        self.__init__(self.slovar1, self.slovar2)
 
     def draw(self):  # Рисуем нашу почти кнопку с текстом, который уезжает
         # влево, если больше максимальной длины
@@ -256,6 +347,9 @@ class RInput(RButton):
             # курсора
         else:
             super().draw()
+
+    def get_text(self):
+        return self.text.text
 
     def time(self):  # Таймер для постановки курсора в конце текста, чтобы не
         # забыть, что мы еще пишем, работает элементарно, просто считает
@@ -320,6 +414,7 @@ class RInput(RButton):
         except Exception:  # Исключение вылезет, когда нажмете клавишу,
             # не прописанную в словаре букв
             pass
+        self.new_text(self.text.text)
 
 
 # Класс клавиатуры - несколько кнопок в ряд горизонтально или вертикально
@@ -327,33 +422,37 @@ class RInput(RButton):
 # indent, kolvo, texts
 # В словарь2 нужны positions, win, font, text_size, color, indent
 class RKeyboard:
-    def __init__(self, slovar, slovar2):  # Первый словарь содержит настройки
+    def __init__(self, slovar, slovar2, animations=''):  # Первый словарь содержит настройки
         # кнопки, второй содержит настройки текста
         pos0 = slovar['positions']
         kolvo = slovar['kolvo']
         size = slovar['size']
         ots = slovar['indent']
+        text_pos0 = slovar2['positions']
         text_ots = slovar2['indent']
         texts = slovar['texts']
         self.buts = []
         # Генерируем положения кнопок по горизонтали или вертикали
-        if slovar['horizontal']:
-            poses = [[pos0[0] + (ots + size[0]) *
-                      i, pos0[1]] for i in range(kolvo)]
-            indents = [text_ots, 0]
+        if 'animations' not in slovar:
+            new_animation = True
         else:
-            poses = [[pos0[0], pos0[1] + (ots + size[1]) *
-                      i] for i in range(kolvo)]
-            indents = [0, text_ots]
+            new_animation = False
+        if slovar['horizontal']:
+            poses = [[pos0[0] + (ots + size[0]) * i, pos0[1]] for i in range(kolvo)]
+            text_poses = [[text_pos0[0] + text_ots * i, text_pos0[1]] for i in range(kolvo)]
+        else:
+            poses = [[pos0[0], pos0[1] + (ots + size[1]) * i] for i in range(kolvo)]
+            text_poses = [[text_pos0[0], text_pos0[1] + text_ots * i] for i in range(kolvo)]
         # Создаём кнопки с текстом в нужных местах с нужным текстом
         for i in range(kolvo):
             try:
+                if new_animation:
+                    slovar['animations'] = animations[i]
                 slovar['positions'] = poses[i]
-                self.buts.append(RButton(slovar))
-                slovar2['positions'] = [poses[i][0] + indents[0],
-                                        poses[i][1] + indents[1]]
+                self.buts.append(RButton(slovar.copy()))
+                slovar2['positions'] = text_poses[i]
                 slovar2['text'] = texts[i]
-                self.buts[i].set_text(slovar2)
+                self.buts[i].set_text(slovar2.copy())
             except Exception:
                 pass
 
@@ -362,14 +461,13 @@ class RKeyboard:
         for i in nums:
             self.buts[i].set_animation(animation)
 
-    def new_animation(self, nums, animation=''):  # Добавляем анимацию в
-        # определенные кнопки
+    def set_default_animation(self, nums, anim):
         for i in nums:
-            self.buts[i].new_animation(animation)
+            self.buts[i].default = anim
 
-    def check(self, m_pos):  # Проверка на нажатие всех кнопок одновременно
+    def check(self, m_pos, animation=1):  # Проверка на нажатие всех кнопок одновременно
         for i in self.buts:
-            i.check(m_pos, 1)
+            i.check(m_pos, animation,)
 
     def taps(self, ev, m_pos):  # Проверка на нажатие всех кнопок
         # одновременно, вернет текст и номер нажатой кнопки
@@ -381,3 +479,85 @@ class RKeyboard:
     def draw(self):  # Прорисовка всех кнопок одновременно
         for i in self.buts:
             i.draw()
+
+    def move_center_text(self):
+        for i in self.buts:
+            i.move_center_text()
+
+
+class RTextBox:
+    def __init__(self, slovar):
+        new_text = self.my_split(slovar['text'], slovar['max_len'])
+        self.r_texts = []
+        for i in range(len(new_text)):
+            slovar['text'] = new_text[i]
+            if i != 0:
+                slovar['positions'] = [slovar['positions'][0], slovar['positions'][1] + slovar['indent']]
+            self.r_texts.append(RText(slovar.copy()))
+
+    def my_split(self, txt, max_len):
+        many_txts = []
+        stroka = ''
+        txts = txt.split()
+        for i in range(len(txts)):
+            if len(stroka + txts[i]) + 1 <= max_len and stroka == '':
+                stroka += txts[i]
+            elif len(stroka + txts[i]) + 1 <= max_len:
+                stroka += ' '
+                stroka += txts[i]
+            else:
+                many_txts.append(stroka)
+                stroka = txts[i]
+        many_txts.append(stroka)
+        return many_txts
+
+    def draw(self):
+        for i in self.r_texts:
+            i.draw()
+
+    def move_right(self, needed_size):
+        for i in self.r_texts:
+            i.move_right(needed_size)
+
+    def move_center(self, needed_size):
+        for i in self.r_texts:
+            i.move_center(needed_size)
+
+
+class RTitleBox:
+    def __init__(self, slovar):
+        new_text = self.my_split(slovar['text'], slovar['max_len'])
+        self.r_texts = []
+        for i in range(len(new_text)):
+            slovar['text'] = new_text[i]
+            if i != 0:
+                slovar['positions'] = [slovar['positions'][0], slovar['positions'][1] + slovar['indent2']]
+            self.r_texts.append(RTitle(slovar.copy()))
+
+    def my_split(self, txt, max_len):
+        many_txts = []
+        stroka = ''
+        txts = txt.split()
+        for i in range(len(txts)):
+            if len(stroka + txts[i]) + 1 <= max_len and stroka == '':
+                stroka += txts[i]
+            elif len(stroka + txts[i]) + 1 <= max_len:
+                stroka += ' '
+                stroka += txts[i]
+            else:
+                many_txts.append(stroka)
+                stroka = txts[i]
+        many_txts.append(stroka)
+        return many_txts
+
+    def draw(self):
+        for i in self.r_texts:
+            i.draw()
+
+    def move_center(self, needed_size):
+        for i in self.r_texts:
+            i.move_center(needed_size)
+
+    def move_right(self, needed_size):
+        for i in self.r_texts:
+            i.move_right(needed_size)

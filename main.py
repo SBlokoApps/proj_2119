@@ -69,9 +69,9 @@ if not(breaked):
     if my_wsm.get_fullscreen():
         window = pygame.display.set_mode(my_wsm.get_size(), pygame.FULLSCREEN)
     else:
-        window = pygame.display.set_mode(my_wsm.get_size(), pygame.RESIZABLE)
+        window = pygame.display.set_mode(my_wsm.get_size())
     pygame.display.set_caption('US-f-CT')
-    # pygame.display.set_icon(pygame.image.load('res/icon.png'))
+    pygame.display.set_icon(pygame.image.load('res/icon.png'))
     my_gui = GUI(window, my_wsm)
     menu = True
     settings = False
@@ -81,6 +81,7 @@ if not(breaked):
     vers_menu = False
     scors_menu = False
     games = False
+    simple = False
     while True:
         pygame.time.delay(10)
         my_gui.print_field()
@@ -107,6 +108,10 @@ if not(breaked):
             if res == 4:
                 scors_menu = False
                 menu = True
+                continue
+            if res == 1:
+                scors_menu = False
+                simple = True
                 continue
         if games:
             res = my_gui.games()
@@ -179,5 +184,13 @@ if not(breaked):
                 pass
             if res == 2:
                 pass
+        if simple:
+            res = my_gui.simple()
+            if res == -1:
+                break
+            if res == 4:
+                simple = False
+                scors_menu = True
+                continue
         pygame.display.update()
 pygame.quit()
