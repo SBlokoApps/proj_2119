@@ -15,16 +15,19 @@ class GUI:
         self.scors_menu_objs = {}
         self.games_objs = {}
         self.simple_objs = {}
-        self.menu_init(size_master)
-        self.settings_init(size_master)
-        self.set_scors_init(size_master)
-        self.about_pr_init(size_master)
-        self.graph_init(size_master)
-        self.vers_menu_init(size_master)
-        self.scors_menu_init(size_master)
-        self.games_init(size_master)
-        self.simple_init(size_master)
+        self.size_master = size_master
+        self.inited_names = []
+        self.master_init('menu', 'sets', 'games', 'scors_menu', 'simple', 'vers_menu', 'set_scors', 'about_pr')
 
+    def master_init(self, *names):
+        master_slovar = {'menu': self.menu_init, 'sets': self.settings_init, 'set_scors': self.set_scors_init,
+                         'about_pr': self.about_pr_init, 'graph': self.graph_init, 'vers_menu': self.vers_menu_init,
+                         'scors_menu': self.scors_menu_init, 'games': self.games_init, 'simple': self.simple_init}
+        for i in names:
+            if i in self.inited_names:
+                continue
+            master_slovar[i](self.size_master)
+            self.inited_names.append(i)
 
     def menu_init(self, size_master):
         factor = size_master.get_factor()
@@ -277,33 +280,16 @@ class GUI:
                         'text_size': size_master.resize_text('res/fonts/labor-union-regular.otf', 0.7),
                         'color': colors[2], 'color2': colors[1], 'text': 'ГРАФИЧЕСКИЕ НАСТРОЙКИ',
                         'indent': size_master.resize_one(3)}
-        text2_slovar = {'positions': size_master.repos_and_resize((0, 220)),
-                       'win': self.win,
-                       'font': 'res/fonts/RobotoSlab-Regular.ttf',
-                       'text_size': size_master.resize_text(
-                           'res/fonts/RobotoSlab-Regular.ttf', 0.9),
-                       'color': colors[0], 'text': 'Размер окна программы'}
-        rkeyb_slovar = {'positions': size_master.repos_and_resize((350, 630)),
-                       'win': self.win,
-                       'size': size_master.repos_and_resize((600, 115)),
-                       'tap_buts': (1, 3), 'animations': [[a3], [a4]], 'horizontal': True, 'kolvo': 2,
-                        'texts': ['ТЁМНАЯ', 'СВЕТЛАЯ'], 'indent': 0}
-        rkeytext_slovar = {'positions': size_master.repos_and_resize((350, 635)), 'win': self.win,
-                         'font': 'res/fonts/RobotoSlab-Regular.ttf',
-                         'text_size': size_master.resize_text('res/fonts/RobotoSlab-Regular.ttf', 0.7),
-                         'color': colors[0], 'indent': size_master.resize_one(600)}
-        self.graph_objs['theme_keys'] = RKeyboard(rkeyb_slovar.copy(), rkeytext_slovar.copy())
-        self.graph_objs['theme_keys'].move_center_text()
-        self.graph_objs['text_winsize'] = RText(text2_slovar.copy())
-        self.graph_objs['text_winsize'].move_center(1920)
-        text2_slovar['positions'] = size_master.repos_and_resize((0, 500))
-        text2_slovar['text'] = 'Тема оформления'
-        self.graph_objs['text_theme'] = RText(text2_slovar.copy())
-        self.graph_objs['text_theme'].move_center(1920)
-        text2_slovar['positions'] = size_master.repos_and_resize((0, 387))
-        text2_slovar['text'] = 'X'
-        self.graph_objs['text_X'] = RText(text2_slovar.copy())
-        self.graph_objs['text_X'].move_center(1920)
+        text_box_slovar = {'positions': size_master.repos_and_resize((0, 220)), 'win': self.win,
+                           'font': 'res/fonts/RobotoSlab-Regular.ttf',
+                           'text_size': size_master.resize_text('res/fonts/RobotoSlab-Regular.ttf', 0.66),
+                           'color': colors[0],
+                           'text': '''Для изменения размера окна и выбора темы оформления нажмите кнопку "Открыть WSM".
+                           При нажатии программа закроется, и откроется утилита WindowSizeMaster, которую вы
+                           видели при первом запуске данной программы''', 'auto': 0,
+                           'window_width': size_master.resize_one(1700), 'indent': size_master.resize_one(80)}
+        self.graph_objs['text_box'] = RTextBox(text_box_slovar.copy())
+        self.graph_objs['text_box'].move_center(size_master.resize_one(1920))
         self.graph_objs['title1'] = RTitle(title_slovar.copy())
         self.graph_objs['title1'].move_center(size_master.resize_one(1920))
         self.graph_objs['title1'].move_center_y(size_master.resize_one(220))
@@ -312,7 +298,7 @@ class GUI:
         self.graph_objs['exit'].move_center_text()
         rbut_slovar['animations'] = [[a0], [a1]]
         rbut_slovar['positions'] = size_master.repos_and_resize((1120, 850))
-        text_slovar['text'] = 'СОХРАНИТЬ'
+        text_slovar['text'] = 'Открыть WSM'
         text_slovar['positions'] = size_master.repos_and_resize((1120, 850))
         self.graph_objs['save'] = RButton(rbut_slovar.copy())
         self.graph_objs['save'].set_text(text_slovar)
@@ -340,9 +326,28 @@ class GUI:
                        'tap_buts': (1, 3), 'animations': [[a0], [a2]]}
         title_slovar = {'positions': size_master.repos_and_resize((0, 0)), 'win': self.win,
                         'font': 'res/fonts/labor-union-regular.otf',
-                        'text_size': size_master.resize_text('res/fonts/labor-union-regular.otf'),
+                        'text_size': size_master.resize_text('res/fonts/labor-union-regular.otf', 0.8),
                         'color': colors[2], 'color2': colors[1], 'text': 'О ПРОГРАММЕ',
                         'indent': size_master.resize_one(3)}
+        text_box_slovar = {'positions': size_master.repos_and_resize((20, 200)), 'win': self.win,
+                           'font': 'res/fonts/RobotoSlab-Regular.ttf',
+                           'text_size': size_master.resize_text('res/fonts/RobotoSlab-Regular.ttf', 0.44),
+                           'color': colors[0],
+                           'text': '''The United Scorer for Chemistry Tournament предназначен для подсчета баллов на Межрегиональном Химическом Турнире
+                           и других мероприятиях с подобной сложной системой расчета. Средства разработки: python 3 &
+                           pygame & project_R, *#enter#* Версия: 4.0.0, *#enter#* Разработчик:
+                           SBlokoApps *#enter#* github.com/SBlokoApps
+                           *#enter#* mailbloko@gmail.com''', 'auto': 0,
+                           'window_width': size_master.resize_one(1700), 'indent': size_master.resize_one(80)}
+        base_slovar = {'positions': size_master.repos_and_resize((660, 480)),
+                       'picture': size_master.transform(pygame.image.load(prefix + 'SBApps.png'), (650, 306)),
+                       'win': self.win}
+        base2_slovar = {'positions': size_master.repos_and_resize((1360, 428)),
+                       'picture': size_master.transform(pygame.image.load(prefix + 'project_r_image.png'), (410, 410)),
+                       'win': self.win}
+        self.about_pr_objs['proj_r'] = RBase(base2_slovar.copy())
+        self.about_pr_objs['sbapps'] = RBase(base_slovar.copy())
+        self.about_pr_objs['text_box'] = RTextBox(text_box_slovar.copy())
         self.about_pr_objs['title1'] = RTitle(title_slovar.copy())
         self.about_pr_objs['title1'].move_center(size_master.resize_one(1920))
         self.about_pr_objs['title1'].move_center_y(size_master.resize_one(220))
@@ -423,16 +428,17 @@ class GUI:
                         'text_size': size_master.resize_text('res/fonts/labor-union-regular.otf', 0.64),
                         'color': colors[2], 'color2': colors[1], 'text': 'НАСТРОЙКИ РАСЧЕТА БАЛЛОВ',
                         'indent': size_master.resize_one(3)}
-        text_box_slovar = {'positions': size_master.repos_and_resize((60, 220)), 'win': self.win, 'font': 'res/fonts/RobotoSlab-Regular.ttf',
-                           'text_size': size_master.resize_text('res/fonts/RobotoSlab-Regular.ttf', 0.8),
+        text_box_slovar = {'positions': size_master.repos_and_resize((0, 220)), 'win': self.win, 'font': 'res/fonts/RobotoSlab-Regular.ttf',
+                           'text_size': size_master.resize_text('res/fonts/RobotoSlab-Regular.ttf', 0.66),
                            'color': colors[0],
                            'text': '''Для настройки счетчиков нажмите на кнопку "Открыть файл" или
                            откройте файл settings.txt в директории res папки с
                            данной программой. Все числа, коэффициенты и названия
                            оценок редактируются именно там. После нажатия на кнопку "Открыть файл" программа
                            закроется. Не забудьте сохранить файл после редактирования.''', 'auto': 0,
-                           'window_width': size_master.resize_one(1800), 'indent': size_master.resize_one(80)}
+                           'window_width': size_master.resize_one(1700), 'indent': size_master.resize_one(80)}
         self.set_scors_objs['text_box'] = RTextBox(text_box_slovar.copy())
+        self.set_scors_objs['text_box'].move_center(size_master.resize_one(1920))
         self.set_scors_objs['title1'] = RTitle(title_slovar.copy())
         self.set_scors_objs['title1'].move_center(size_master.resize_one(1920))
         self.set_scors_objs['title1'].move_center_y(size_master.resize_one(220))

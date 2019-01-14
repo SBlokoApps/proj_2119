@@ -509,7 +509,7 @@ class RTextBox:
         while True:
             new_slovar['text'] = 'a' * my_len
             text = RText(new_slovar.copy())
-            if text.get_width() == new_slovar['window_width']:
+            if text.get_width() >= new_slovar['window_width']:
                 return my_len
             my_len += 1
     def my_split(self, txt, max_len):
@@ -517,7 +517,10 @@ class RTextBox:
         stroka = ''
         txts = txt.split()
         for i in range(len(txts)):
-            if len(stroka + txts[i]) + 1 <= max_len and stroka == '':
+            if txts[i] == '*#enter#*':
+                many_txts.append(stroka)
+                stroka = ''
+            elif len(stroka + txts[i]) + 1 <= max_len and stroka == '':
                 stroka += txts[i]
             elif len(stroka + txts[i]) + 1 <= max_len:
                 stroka += ' '

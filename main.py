@@ -4,7 +4,7 @@ import os
 
 
 pygame.init()
-new_open = False
+new_open = True
 breaked = False
 if new_open:
     wsm_screen = pygame.display.set_mode((400, 300))
@@ -166,6 +166,7 @@ if not(breaked):
                 vers_menu = True
                 continue
         if graph:
+            my_gui.master_init('graph')
             res = my_gui.graph()
             if res == -1:
                 break
@@ -174,7 +175,8 @@ if not(breaked):
                 settings = True
                 continue
             if res == 1:
-                pass
+                os.startfile(os.getcwd() + '/main.py')
+                break
         if vers_menu:
             res = my_gui.vers_menu()
             if res == -1:
