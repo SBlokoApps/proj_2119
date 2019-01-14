@@ -37,6 +37,12 @@ class RBase:
 
     def draw(self):  # Согласитесь, прописать метод быстрее, чем команду blit
         self.win.blit(self.pic, self.pos)
+    
+    def get_width(self):
+        return self.pic.get_width()
+    
+    def get_height(self):
+        return self.pic.get_height()
 
 
 # Класс кнопки, просто кнопка с текстом, которая может менять анимацию
@@ -69,7 +75,7 @@ class RButton:
         # познакомитесь позже
 
     def get_text_size(self):
-        return self.text.pic.get_width()
+        return self.text.get_width()
 
     def move_center_text(self):
         self.text.move_center(self.size[0])
@@ -154,15 +160,15 @@ class RText(RBase):
         self.pos[1] += indent
 
     def move_center(self, needed_size):
-        popravka = (needed_size - self.pic.get_width()) // 2
+        popravka = (needed_size - self.get_width()) // 2
         self.move_text_x(popravka)
 
     def move_center_y(self, needed_size):
-        popravka = (needed_size - self.pic.get_height()) // 2
+        popravka = (needed_size - self.get_height()) // 2
         self.move_text_y(popravka)
 
     def move_right(self, needed_size):
-        popravka = (needed_size - self.pic.get_width())
+        popravka = (needed_size - self.get_width())
         self.move_text_x(popravka)
 
 
@@ -176,10 +182,10 @@ class RTextFrame:
         self.text.draw()
 
     def move_center(self):
-        self.text.move_center(self.base.pic.get_width())
+        self.text.move_center(self.base.get_width())
 
     def move_center_y(self):
-        self.text.move_center_y(self.base.pic.get_height())
+        self.text.move_center_y(self.base.get_height())
 
 # Класс заголовка, просто двойной текст, которым легче управлять,
 # чем просто двумя текстами
@@ -487,6 +493,9 @@ class RKeyboard:
 
 class RTextBox:
     def __init__(self, slovar):
+        slovar['text'] = ' '.join(slovar['text'].split())
+        if 'auto' in slovar:
+            slovar['max_len'] = self.auto_detect(slovar.copy())
         new_text = self.my_split(slovar['text'], slovar['max_len'])
         self.r_texts = []
         for i in range(len(new_text)):
@@ -494,7 +503,15 @@ class RTextBox:
             if i != 0:
                 slovar['positions'] = [slovar['positions'][0], slovar['positions'][1] + slovar['indent']]
             self.r_texts.append(RText(slovar.copy()))
-
+    
+    def auto_detect(self, new_slovar):
+        my_len = 1
+        while True:
+            new_slovar['text'] = 'a' * my_len
+            text = RText(new_slovar.copy())
+            if text.get_width() == new_slovar['window_width']:
+                return my_len
+            my_len += 1
     def my_split(self, txt, max_len):
         many_txts = []
         stroka = ''

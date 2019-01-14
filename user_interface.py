@@ -258,6 +258,10 @@ class GUI:
             pygame.image.load(prefix + 'b_800_150_on.png'), (800, 150))
         a2 = size_master.transform(
             pygame.image.load(prefix + 'b_800_150_on2.png'), (800, 150))
+        a3 = size_master.transform(
+            pygame.image.load(prefix + 'b_600_115_off.png'), (600, 115))
+        a4 = size_master.transform(
+            pygame.image.load(prefix + 'b_600_115_on.png'), (600, 115))
         text_slovar = {'positions': size_master.repos_and_resize((0, 850)),
                        'win': self.win,
                        'font': 'res/fonts/RobotoSlab-Regular.ttf',
@@ -268,6 +272,41 @@ class GUI:
                        'win': self.win,
                        'size': size_master.repos_and_resize((800, 150)),
                        'tap_buts': (1, 3), 'animations': [[a0], [a2]]}
+        title_slovar = {'positions': size_master.repos_and_resize((0, 0)), 'win': self.win,
+                        'font': 'res/fonts/labor-union-regular.otf',
+                        'text_size': size_master.resize_text('res/fonts/labor-union-regular.otf', 0.7),
+                        'color': colors[2], 'color2': colors[1], 'text': 'ГРАФИЧЕСКИЕ НАСТРОЙКИ',
+                        'indent': size_master.resize_one(3)}
+        text2_slovar = {'positions': size_master.repos_and_resize((0, 220)),
+                       'win': self.win,
+                       'font': 'res/fonts/RobotoSlab-Regular.ttf',
+                       'text_size': size_master.resize_text(
+                           'res/fonts/RobotoSlab-Regular.ttf', 0.9),
+                       'color': colors[0], 'text': 'Размер окна программы'}
+        rkeyb_slovar = {'positions': size_master.repos_and_resize((350, 630)),
+                       'win': self.win,
+                       'size': size_master.repos_and_resize((600, 115)),
+                       'tap_buts': (1, 3), 'animations': [[a3], [a4]], 'horizontal': True, 'kolvo': 2,
+                        'texts': ['ТЁМНАЯ', 'СВЕТЛАЯ'], 'indent': 0}
+        rkeytext_slovar = {'positions': size_master.repos_and_resize((350, 635)), 'win': self.win,
+                         'font': 'res/fonts/RobotoSlab-Regular.ttf',
+                         'text_size': size_master.resize_text('res/fonts/RobotoSlab-Regular.ttf', 0.7),
+                         'color': colors[0], 'indent': size_master.resize_one(600)}
+        self.graph_objs['theme_keys'] = RKeyboard(rkeyb_slovar.copy(), rkeytext_slovar.copy())
+        self.graph_objs['theme_keys'].move_center_text()
+        self.graph_objs['text_winsize'] = RText(text2_slovar.copy())
+        self.graph_objs['text_winsize'].move_center(1920)
+        text2_slovar['positions'] = size_master.repos_and_resize((0, 500))
+        text2_slovar['text'] = 'Тема оформления'
+        self.graph_objs['text_theme'] = RText(text2_slovar.copy())
+        self.graph_objs['text_theme'].move_center(1920)
+        text2_slovar['positions'] = size_master.repos_and_resize((0, 387))
+        text2_slovar['text'] = 'X'
+        self.graph_objs['text_X'] = RText(text2_slovar.copy())
+        self.graph_objs['text_X'].move_center(1920)
+        self.graph_objs['title1'] = RTitle(title_slovar.copy())
+        self.graph_objs['title1'].move_center(size_master.resize_one(1920))
+        self.graph_objs['title1'].move_center_y(size_master.resize_one(220))
         self.graph_objs['exit'] = RButton(rbut_slovar.copy())
         self.graph_objs['exit'].set_text(text_slovar)
         self.graph_objs['exit'].move_center_text()
@@ -299,6 +338,14 @@ class GUI:
                        'win': self.win,
                        'size': size_master.repos_and_resize((800, 150)),
                        'tap_buts': (1, 3), 'animations': [[a0], [a2]]}
+        title_slovar = {'positions': size_master.repos_and_resize((0, 0)), 'win': self.win,
+                        'font': 'res/fonts/labor-union-regular.otf',
+                        'text_size': size_master.resize_text('res/fonts/labor-union-regular.otf'),
+                        'color': colors[2], 'color2': colors[1], 'text': 'О ПРОГРАММЕ',
+                        'indent': size_master.resize_one(3)}
+        self.about_pr_objs['title1'] = RTitle(title_slovar.copy())
+        self.about_pr_objs['title1'].move_center(size_master.resize_one(1920))
+        self.about_pr_objs['title1'].move_center_y(size_master.resize_one(220))
         self.about_pr_objs['exit'] = RButton(rbut_slovar.copy())
         self.about_pr_objs['exit'].set_text(text_slovar)
         self.about_pr_objs['exit'].move_center_text()
@@ -330,6 +377,10 @@ class GUI:
                        'win': self.win,
                        'size': size_master.repos_and_resize((600, 115)),
                        'tap_buts': (1, 3), 'animations': [[a0], [a2]]}
+        base_slovar = {'positions': size_master.repos_and_resize((0, 0)),
+                       'picture': size_master.transform(pygame.image.load(prefix + 'versions_pic.png'), (1920, 850)),
+                       'win': self.win}
+        self.vers_menu_objs['picture'] = RBase(base_slovar.copy())
         self.vers_menu_objs['exit'] = RButton(rbut_slovar.copy())
         self.vers_menu_objs['exit'].set_text(text_slovar)
         self.vers_menu_objs['exit'].move_center_text()
@@ -367,6 +418,24 @@ class GUI:
                        'win': self.win,
                        'size': size_master.repos_and_resize((800, 150)),
                        'tap_buts': (1, 3), 'animations': [[a0], [a2]]}
+        title_slovar = {'positions': size_master.repos_and_resize((0, 0)), 'win': self.win,
+                        'font': 'res/fonts/labor-union-regular.otf',
+                        'text_size': size_master.resize_text('res/fonts/labor-union-regular.otf', 0.64),
+                        'color': colors[2], 'color2': colors[1], 'text': 'НАСТРОЙКИ РАСЧЕТА БАЛЛОВ',
+                        'indent': size_master.resize_one(3)}
+        text_box_slovar = {'positions': size_master.repos_and_resize((60, 220)), 'win': self.win, 'font': 'res/fonts/RobotoSlab-Regular.ttf',
+                           'text_size': size_master.resize_text('res/fonts/RobotoSlab-Regular.ttf', 0.8),
+                           'color': colors[0],
+                           'text': '''Для настройки счетчиков нажмите на кнопку "Открыть файл" или
+                           откройте файл settings.txt в директории res папки с
+                           данной программой. Все числа, коэффициенты и названия
+                           оценок редактируются именно там. После нажатия на кнопку "Открыть файл" программа
+                           закроется. Не забудьте сохранить файл после редактирования.''', 'auto': 0,
+                           'window_width': size_master.resize_one(1800), 'indent': size_master.resize_one(80)}
+        self.set_scors_objs['text_box'] = RTextBox(text_box_slovar.copy())
+        self.set_scors_objs['title1'] = RTitle(title_slovar.copy())
+        self.set_scors_objs['title1'].move_center(size_master.resize_one(1920))
+        self.set_scors_objs['title1'].move_center_y(size_master.resize_one(220))
         self.set_scors_objs['exit'] = RButton(rbut_slovar.copy())
         self.set_scors_objs['exit'].set_text(text_slovar)
         self.set_scors_objs['exit'].move_center_text()
@@ -422,8 +491,8 @@ class GUI:
                          'color': colors[0], 'text': '5+ 5- 4'}
         title_slovar = {'positions': size_master.repos_and_resize((0, 0)), 'win': self.win,
                         'font': 'res/fonts/labor-union-regular.otf',
-                        'text_size': size_master.resize_text('res/fonts/labor-union-regular.otf'),
-                        'color': colors[2], 'color2': colors[1], 'text': 'ПРОСТОЙ СЧЕТЧИК',
+                        'text_size': size_master.resize_text('res/fonts/labor-union-regular.otf', 0.7),
+                        'color': colors[2], 'color2': colors[1], 'text': 'БАЛЛЫ ЗА ДЕЙСТВИЕ',
                         'indent': size_master.resize_one(3)}
         self.simple_objs['title1'] = RTitle(title_slovar.copy())
         self.simple_objs['title1'].move_center(size_master.resize_one(1920))

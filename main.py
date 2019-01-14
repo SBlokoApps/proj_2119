@@ -1,9 +1,10 @@
 from window_size_master import *
 from user_interface import *
+import os
 
 
 pygame.init()
-new_open = True
+new_open = False
 breaked = False
 if new_open:
     wsm_screen = pygame.display.set_mode((400, 300))
@@ -150,7 +151,8 @@ if not(breaked):
                 set_scors = False
                 continue
             if res == 1:
-                pass
+                os.startfile(os.getcwd() + '/res/settings.txt')
+                break
         if about_pr:
             res = my_gui.about_pr()
             if res == -1:
@@ -162,6 +164,7 @@ if not(breaked):
             if res == 1:
                 about_pr = False
                 vers_menu = True
+                continue
         if graph:
             res = my_gui.graph()
             if res == -1:
