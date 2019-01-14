@@ -36,13 +36,17 @@ class WSM:
         return int(self.factor * old)
 
     def resize_text(self, font, factor=1):
-        if font == 'RobotoSlab-Regular.ttf':
+        if font == 'res/fonts/RobotoSlab-Regular.ttf':
             return int((0.045 * self.size[0] + 4.286) * factor)
+        elif font == 'res/fonts/labor-union-regular.otf':
+            return int((0.0893 * self.size[0] + 8/571) * factor)
+        elif font == 'res/fonts/Staatliches-Regular.ttf':
+            return int((0.125 * self.size[0] - 10) * factor)
 
     def get_colors(self):
         if self.theme == '1':
-            return [(0, 0, 0), (255, 0, 0)]
-        return [(255, 255, 255), (255, 0, 0)]
+            return [(255, 0, 0), (150, 150, 150), (200, 50, 50)]
+        return [(255, 255, 255), (200, 10, 10), (255, 255, 255)]
 
 
 class WSMGUI:
@@ -60,9 +64,9 @@ class WSMGUI:
         a2 = pygame.image.load('res/wsm/button_on2.png')
         a3 = pygame.image.load('res/wsm/input_off.png')
         a4 = pygame.image.load('res/wsm/input_on.png')
-        t_slovar = {'positions': (15, 3), 'win': self.win, 'font': 'Staatliches-Regular.ttf', 'text_size': 55,
+        t_slovar = {'positions': (15, 3), 'win': self.win, 'font': 'res/fonts/Staatliches-Regular.ttf', 'text_size': 55,
                     'color': (255, 0, 0), 'text': 'The United Scorer', 'color2': (0, 255, 255), 'indent': 1}
-        text_slovar = {'positions': (15, 65), 'win': self.win, 'font': 'RobotoSlab-Regular.ttf', 'text_size': 30,
+        text_slovar = {'positions': (15, 65), 'win': self.win, 'font': 'res/fonts/RobotoSlab-Regular.ttf', 'text_size': 30,
                        'color': (255, 255, 255),
                        'text': 'Перед первым запуском US-f-CT необходимо настроить размер окна программы',
                        'indent': 28, 'max_len': 22}
