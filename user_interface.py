@@ -15,17 +15,20 @@ class GUI:
         self.scors_menu_objs = {}
         self.games_objs = {}
         self.simple_objs = {}
+        self.master_init_ui_objs = {}
         self.size_master = size_master
         self.inited_names = []
-        self.master_init('menu', 'sets', 'games', 'scors_menu', 'simple', 'vers_menu', 'set_scors', 'about_pr')
+        self.master_init_ui_init(size_master)
 
     def master_init(self, *names):
+        self.master_init_ui()
         master_slovar = {'menu': self.menu_init, 'sets': self.settings_init, 'set_scors': self.set_scors_init,
                          'about_pr': self.about_pr_init, 'graph': self.graph_init, 'vers_menu': self.vers_menu_init,
                          'scors_menu': self.scors_menu_init, 'games': self.games_init, 'simple': self.simple_init}
         for i in names:
             if i in self.inited_names:
                 continue
+            pygame.display.update()
             master_slovar[i](self.size_master)
             self.inited_names.append(i)
 
@@ -504,7 +507,7 @@ class GUI:
         self.simple_objs['title1'].move_center(size_master.resize_one(1920))
         self.simple_objs['title1'].move_center_y(size_master.resize_one(220))
         frame_slovar = {'picture': pic1, 'positions': size_master.repos_and_resize([110, 385]), 'win': self.win}
-        anims_spisok = [[[a3], [a4]] for i in range(10)]
+        anims_spisok = [[[a3], [a4], [a5]] for i in range(10)]
         anims_spisok.append([[a3], [a5]])
         self.simple_objs['exit'] = RButton(rbut_slovar.copy())
         self.simple_objs['exit'].set_text(text_slovar)
@@ -548,6 +551,35 @@ class GUI:
         self.simple_objs['result_text'].move_center_y()
         self.simple_objs['keyb2_text'].move_center_y()
         self.simple_objs['keyb1_text'].move_center_y()
+
+    def master_init_ui_init(self, size_master):
+        factor = size_master.get_factor()
+        prefix = size_master.get_prefix()
+        colors = size_master.get_colors()
+        text_slovar = {'positions': size_master.repos_and_resize((0, 300)),
+                       'win': self.win,
+                       'font': 'res/fonts/RobotoSlab-Regular.ttf',
+                       'text_size': size_master.resize_text(
+                           'res/fonts/RobotoSlab-Regular.ttf'),
+                       'color': colors[0], 'text': 'НИКУДА НЕ НАЖИМАЙТЕ!!!'}
+        title_slovar = {'positions': size_master.repos_and_resize((0, 0)), 'win': self.win,
+                        'font': 'res/fonts/labor-union-regular.otf',
+                        'text_size': size_master.resize_text('res/fonts/labor-union-regular.otf'),
+                        'color': colors[2], 'color2': colors[1], 'text': 'ИДЕТ ЗaГРУЗКА',
+                        'indent': size_master.resize_one(3)}
+        self.master_init_ui_objs['title1'] = RTitle(title_slovar.copy())
+        self.master_init_ui_objs['title1'].move_center(size_master.resize_one(1920))
+        self.master_init_ui_objs['title1'].move_center_y(size_master.resize_one(1080))
+        self.master_init_ui_objs['text'] = RText(text_slovar.copy())
+        self.master_init_ui_objs['text'].move_center(size_master.resize_one(1920))
+        self.master_init_ui_objs['text'].move_center_y(size_master.resize_one(1080))
+        text_slovar['positions'] = size_master.repos_and_resize((0, 400))
+        text_slovar['text'] = '(если не хотите проблем)'
+        self.master_init_ui_objs['text2'] = RText(text_slovar.copy())
+        self.master_init_ui_objs['text2'].move_center(
+            size_master.resize_one(1920))
+        self.master_init_ui_objs['text2'].move_center_y(
+            size_master.resize_one(1080))
 
     def print_field(self):
         self.win.blit(self.fld, (0, 0))
@@ -701,3 +733,9 @@ class GUI:
                 return -1
             if self.simple_objs['exit'].is_tap(event, pygame.mouse.get_pos(), 1):
                 return 4
+            self.simple_objs['keyboard1'].taps(event, pygame.mouse.get_pos(), delay=30, animation=2)
+
+
+    def master_init_ui(self):
+        for i in self.master_init_ui_objs:
+            self.master_init_ui_objs[i].draw()

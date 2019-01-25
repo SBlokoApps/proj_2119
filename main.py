@@ -4,7 +4,15 @@ import os
 
 
 pygame.init()
-new_open = True
+try:
+    with open('res/screen_sets.txt', 'r') as f:
+        vse = f.read().split()
+    if vse[3] == '1':
+        new_open = False
+    else:
+        new_open = True
+except Exception:
+    new_open = True
 breaked = False
 if new_open:
     wsm_screen = pygame.display.set_mode((400, 300))
@@ -74,6 +82,7 @@ if not(breaked):
     pygame.display.set_caption('US-f-CT')
     pygame.display.set_icon(pygame.image.load('res/icon.png'))
     my_gui = GUI(window, my_wsm)
+    my_gui.master_init('menu', 'sets', 'games', 'scors_menu', 'simple', 'vers_menu', 'set_scors', 'about_pr', 'graph')
     menu = True
     settings = False
     set_scors = False
@@ -166,7 +175,6 @@ if not(breaked):
                 vers_menu = True
                 continue
         if graph:
-            my_gui.master_init('graph')
             res = my_gui.graph()
             if res == -1:
                 break
@@ -175,6 +183,7 @@ if not(breaked):
                 settings = True
                 continue
             if res == 1:
+                my_wsm.reset_sets()
                 os.startfile(os.getcwd() + '/main.py')
                 break
         if vers_menu:
