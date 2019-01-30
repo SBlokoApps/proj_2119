@@ -1,6 +1,8 @@
 class GreatScorer:
     def __init__(self):
         self.vars = {}
+        self.marks_1 = []
+        self.marks_2 = []
         if not self.read_file():
             self.reset_file()
             self.read_file()
@@ -9,20 +11,18 @@ class GreatScorer:
         try:
             with open('res/settings.txt', 'r') as f:
                 spisok = f.read().split('\n')
-                for i in spisok:
-                    print(spisok.index(i), i)
             self.vars['marks_sp'] = []
             self.vars['marks_sl'] = {}
             for i in spisok[1:11]:
                 perem = i.split()
                 ocenka = perem[0].split('"')[1]
                 self.vars['marks_sp'].append(ocenka)
-                self.vars['marks_sl'][ocenka] = perem[1]
+                self.vars['marks_sl'][ocenka] = int(perem[1])
             self.vars['max'] = int(spisok[13].split()[1])
             self.vars['min'] = int(spisok[14].split()[1])
             if self.vars['max'] < 0:
                 return False
-            if self.vars['in'] < 0:
+            if self.vars['min'] < 0:
                 return False
             self.vars['k_doc_1'] = float(spisok[17].split()[3])
             self.vars['k_doc_2'] = float(spisok[18].split()[3])
@@ -82,17 +82,17 @@ class GreatScorer:
         marks2 = self.translate(line2)[self.vars['min']:len(line1)-self.vars['max']]
         oc1 = sum(marks1) / len(marks1) * self.vars['k_doc_1']
         oc2 = sum(marks1) / len(marks1) * self.vars['k_doc_1']
-        return self.round(oc1 + oc2)
+        return str(self.round(oc1 + oc2))
 
     def oppoent(self, line1):
         marks1 = self.translate(line1)[self.vars['min']:len(line1)-self.vars['max']]
         oc1 = sum(marks1) / len(marks1) * self.vars['k_opp']
-        return self.round(oc1)
+        return str(self.round(oc1))
 
     def recenzent(self, line1):
         marks1 = self.translate(line1)[self.vars['min']:len(line1)-self.vars['max']]
         oc1 = sum(marks1) / len(marks1) * self.vars['k_rec']
-        return self.round(oc1)
+        return str(self.round(oc1))
 
     def translate(self, spisok):
         spisok2 = []
@@ -110,3 +110,46 @@ class GreatScorer:
         if prib:
             num += 1
         return num / 100
+
+    def input_k1(self, text):
+        if text in self.vars['marks_sp']:
+            self.marks_1.append(text)
+        else:
+            if len(self.marks_1) == 0:
+                return
+            del self.marks_1[-1]
+
+    def input_k2(self, text):
+        if text in self.vars['marks_sp']:
+            self.marks_2.append(text)
+        else:
+            if len(self.marks_2) == 0:
+                return
+            del self.marks_2[-1]
+
+    def keydown(self, key):
+        try:
+            if key == 1:
+                return 'Результат: ' + self.docladchik(self.marks_1, self.marks_2)
+            if key == 2:
+                return 'Результат: ' + self.oppoent(self.marks_1)
+            if key == 3:
+                return 'Результат: ' + self.recenzent(self.marks_1)
+        except Exception:
+            return 'Результат: Error'
+
+    def get_text1(self):
+        if len(self.marks_1) <= 13:
+            return ' '.join(self.marks_1)
+        else:
+            return ' '.join(self.marks_1[len(self.marks_1) - 13:])
+
+    def get_text2(self):
+        if len(self.marks_2) <= 13:
+            return ' '.join(self.marks_2)
+        else:
+            return ' '.join(self.marks_2[len(self.marks_2) - 13:])
+
+    def reset_marks(self):
+        self.marks_1 = []
+        self.marks_2 = []
