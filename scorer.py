@@ -139,16 +139,17 @@ class GreatScorer:
             return 'Результат: Error'
 
     def get_text1(self):
-        if len(self.marks_1) <= 13:
+        x = 10
+        if len(self.marks_1) <= x:
             return ' '.join(self.marks_1)
         else:
-            return ' '.join(self.marks_1[len(self.marks_1) - 13:])
+            return ' '.join(self.marks_1[len(self.marks_1) - x:])
 
     def get_text2(self):
-        if len(self.marks_2) <= 13:
+        if len(self.marks_2) <= x:
             return ' '.join(self.marks_2)
         else:
-            return ' '.join(self.marks_2[len(self.marks_2) - 13:])
+            return ' '.join(self.marks_2[len(self.marks_2) - x:])
 
     def reset_marks(self):
         self.marks_1 = []

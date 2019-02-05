@@ -111,7 +111,7 @@ class RButton:
     def is_tap(self, ev, m_pos, num_animation=0):  # Проверяет, нажали ли на
         # кнопку нужной клавишей мыши, ставит анимацию, которая нужна при
         # нажатии принимает событие, положение курсора и номер нужной картинки
-        if ev.type == pygame.MOUSEBUTTONUP:
+        if ev.type == pygame.MOUSEBUTTONDOWN:
             if ev.button in self.tap_buttons and self.check(
                     m_pos, num_animation):
                 return True

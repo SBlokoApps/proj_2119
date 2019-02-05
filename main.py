@@ -1,5 +1,6 @@
 from window_size_master import *
 from user_interface import *
+from colber import Colber
 import os
 
 
@@ -73,6 +74,7 @@ if new_open:
             if res == 1:
                 break
         pygame.display.update()
+    del user_wsm
 my_wsm = WSM()
 if not(breaked):
     if my_wsm.get_fullscreen():
@@ -92,7 +94,10 @@ if not(breaked):
     scors_menu = False
     games = False
     simple = False
+    game_colber = True
     while True:
+        if True:
+            break
         pygame.time.delay(10)
         my_gui.print_field()
         if menu:
@@ -131,6 +136,9 @@ if not(breaked):
                 games = False
                 menu = True
                 continue
+            if res == 1:
+                game_colber = True
+                break
         if settings:
             res = my_gui.settings()
             if res == -1:
@@ -209,4 +217,36 @@ if not(breaked):
                 scors_menu = True
                 continue
         pygame.display.update()
+    if game_colber:
+        del my_gui
+        menu = True
+        progr = False
+        play = False
+        game = Colber(my_wsm, window)
+        while True:
+            pygame.time.delay(10)
+            game.draw_field()
+            if menu:
+                res = game.menu()
+                if res == -1:
+                    break
+                if res == 4:
+                    os.startfile(os.getcwd() + '/main.py')
+                    break
+                if res == 2:
+                    progr = True
+                    menu = False
+                if res == 1:
+                    play = True
+                    menu = False
+            if progr:
+                res = game.progress()
+            if play:
+                res = game.choose_lvl()
+                if res == -1:
+                    break
+                if res == 4:
+                    play = False
+                    menu = True
+            pygame.display.update()
 pygame.quit()

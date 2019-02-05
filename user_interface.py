@@ -6,6 +6,7 @@ class GUI:
     def __init__(self, window, size_master):
         prefix = size_master.get_prefix()
         self.scorer = GreatScorer()
+        self.colber = 0
         self.win = window
         self.fld = size_master.transform(pygame.image.load(prefix + 'field.png'), (1920, 1080))
         self.menu_objs = {}
@@ -645,6 +646,8 @@ class GUI:
                 return -1
             if self.games_objs['exit'].is_tap(event, pygame.mouse.get_pos(), 1):
                 return 4
+            if self.games_objs['1'].is_tap(event, pygame.mouse.get_pos(), 1):
+                return 1
 
     def settings(self):
         mouse_pos = pygame.mouse.get_pos()
