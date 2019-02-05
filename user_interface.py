@@ -1,9 +1,11 @@
 from project_R import *
+from scorer import GreatScorer
 
 
 class GUI:
     def __init__(self, window, size_master):
         prefix = size_master.get_prefix()
+        self.scorer = GreatScorer()
         self.win = window
         self.fld = size_master.transform(pygame.image.load(prefix + 'field.png'), (1920, 1080))
         self.menu_objs = {}
@@ -253,6 +255,12 @@ class GUI:
         self.settings_objs['scors'] = RButton(rbut_slovar.copy())
         self.settings_objs['scors'].set_text(text_slovar)
         self.settings_objs['scors'].move_center_text()
+        rbut_slovar['positions'] = size_master.repos_and_resize((1120, 850))
+        text_slovar['text'] = 'Сброс Настроек'
+        text_slovar['positions'] = size_master.repos_and_resize((1120, 850))
+        self.settings_objs['reset'] = RButton(rbut_slovar.copy())
+        self.settings_objs['reset'].set_text(text_slovar)
+        self.settings_objs['reset'].move_center_text()
 
     def graph_init(self, size_master):
         factor = size_master.get_factor()
@@ -472,6 +480,10 @@ class GUI:
             pygame.image.load(prefix + 'b_100_100_on.png'), (100, 100))
         a5 = size_master.transform(
             pygame.image.load(prefix + 'b_100_100_on2.png'), (100, 100))
+        a6 = size_master.transform(
+            pygame.image.load(prefix + 'b_100_100_on3.png'), (100, 100))
+        a7 = size_master.transform(
+            pygame.image.load(prefix + 'b_100_100_on4.png'), (100, 100))
         pic1 = size_master.transform(
             pygame.image.load(prefix + 'pic_1100_100.png'), (1100, 100))
         pic2 = size_master.transform(
@@ -507,8 +519,8 @@ class GUI:
         self.simple_objs['title1'].move_center(size_master.resize_one(1920))
         self.simple_objs['title1'].move_center_y(size_master.resize_one(220))
         frame_slovar = {'picture': pic1, 'positions': size_master.repos_and_resize([110, 385]), 'win': self.win}
-        anims_spisok = [[[a3], [a4], [a5]] for i in range(10)]
-        anims_spisok.append([[a3], [a5]])
+        anims_spisok = [[[a3], [a4], [a6]] for i in range(10)]
+        anims_spisok.append([[a3], [a5], [a7]])
         self.simple_objs['exit'] = RButton(rbut_slovar.copy())
         self.simple_objs['exit'].set_text(text_slovar)
         self.simple_objs['exit'].move_center_text()
@@ -651,6 +663,10 @@ class GUI:
                 return 2
             if self.settings_objs['vers'].is_tap(event, pygame.mouse.get_pos(), 1):
                 return 3
+            if self.settings_objs['reset'].is_tap(event, pygame.mouse.get_pos(), 1):
+                self.scorer.reset_file()
+                self.size_master.reset_sets()
+                return 5
             if self.settings_objs['exit'].is_tap(event, pygame.mouse.get_pos(), 1):
                 return 4
 
@@ -722,6 +738,8 @@ class GUI:
 
     def simple(self):
         mouse_pos = pygame.mouse.get_pos()
+        self.simple_objs['keyb1_text'].new_text(self.scorer.get_text1())
+        self.simple_objs['keyb2_text'].new_text(self.scorer.get_text2())
         for i in self.simple_objs:
             try:
                 self.simple_objs[i].check(mouse_pos, 1)
@@ -732,9 +750,28 @@ class GUI:
             if event.type == pygame.QUIT:
                 return -1
             if self.simple_objs['exit'].is_tap(event, pygame.mouse.get_pos(), 1):
+                self.scorer.reset_marks()
+                self.simple_objs['result_text'].new_text('Результат: ')
+                self.simple_objs['keyb1_text'].new_text('')
+                self.simple_objs['keyb2_text'].new_text('')
                 return 4
-            self.simple_objs['keyboard1'].taps(event, pygame.mouse.get_pos(), delay=30, animation=2)
-
+            tap = self.simple_objs['keyboard1'].taps(event, pygame.mouse.get_pos(), animation=2, delay=2)
+            tap2 = self.simple_objs['keyboard2'].taps(event,
+                                                     pygame.mouse.get_pos(),
+                                                     animation=2, delay=2)
+            if tap[0]:
+                self.scorer.input_k1(tap[2])
+            if tap2[0]:
+                self.scorer.input_k2(tap2[2])
+            if self.simple_objs['doclad'].is_tap(event, pygame.mouse.get_pos(), 1):
+                self.simple_objs['result_text'].new_text(self.scorer.keydown(1))
+                self.scorer.reset_marks()
+            if self.simple_objs['oppon'].is_tap(event, pygame.mouse.get_pos(), 1):
+                self.simple_objs['result_text'].new_text(self.scorer.keydown(2))
+                self.scorer.reset_marks()
+            if self.simple_objs['recenz'].is_tap(event, pygame.mouse.get_pos(), 1):
+                self.simple_objs['result_text'].new_text(self.scorer.keydown(3))
+                self.scorer.reset_marks()
 
     def master_init_ui(self):
         for i in self.master_init_ui_objs:

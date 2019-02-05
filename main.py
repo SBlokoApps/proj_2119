@@ -151,6 +151,8 @@ if not(breaked):
                 about_pr = True
                 settings = False
                 continue
+            if res == 5:
+                break
         if set_scors:
             res = my_gui.set_scors()
             if res == -1:

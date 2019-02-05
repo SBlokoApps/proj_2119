@@ -211,6 +211,12 @@ class RTextFrame:
         self.base.draw()
         self.text.draw()
 
+    def new_text(self, text):  # Если вдруг надо сменить текст, мы снова его
+        # рендерим, кидаем сразу в pic
+        self.text.text = text  # Если захотим получить текст кнопки,
+        # он должен быть актуален, поэтому обновим его
+        self.text.pic = self.text.font.render(text, True, self.text.color)
+
     def move_center(self):  # Центрирование текста в своей рамке по оси х,
         # метод текста, а размер рамки
         self.text.move_center(self.base.get_width())
