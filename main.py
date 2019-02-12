@@ -222,6 +222,8 @@ if not(breaked):
         menu = True
         progr = False
         play = False
+        shop_c = False
+        shop_t = False
         game = Colber(my_wsm, window)
         while True:
             pygame.time.delay(10)
@@ -248,5 +250,25 @@ if not(breaked):
                 if res == 4:
                     play = False
                     menu = True
+                if res == 1001:
+                    shop_c = True
+                    play = False
+                if res == 1002:
+                    shop_t = True
+                    play = False
+            if shop_c:
+                res = game.shop_c()
+                if res == -1:
+                    break
+                if res == 4:
+                    shop_c = False
+                    play = True
+            if shop_t:
+                res = game.shop_t()
+                if res == -1:
+                    break
+                if res == 4:
+                    shop_t = False
+                    play = True
             pygame.display.update()
 pygame.quit()

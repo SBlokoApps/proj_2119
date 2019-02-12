@@ -710,3 +710,15 @@ class RTitleBox:
     def move_center(self, needed_size):
         for i in self.r_texts:
             i.move_center(needed_size)
+
+
+class RItemList:
+    def __init__(self):
+        self.list = []
+
+    def append(self, item):
+        self.list.append(item)
+
+    def draw(self):
+        for i in self.list:
+            i.draw()
