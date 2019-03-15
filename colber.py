@@ -3,35 +3,85 @@ import time
 
 
 class MySprite(pygame.sprite.Sprite):
-    def __init__(self, group, pos, image, click_image):
+    def __init__(self, group, pos, image, image2, click_image, click_image2):
         super().__init__(group)
-        self.no_image = image
+        self.img = [click_image, click_image2]
+        self.no_img = [image, image2]
+        self.flag = 0
         self.image = image
         self.click_image = click_image
         self.rect = self.image.get_rect()
         self.rect.x = pos[0]
         self.rect.y = pos[1]
         self.timer = 0
+        self.anim_time = 0
+        self.tap = False
+
+    def anim_update(self):
+        if self.anim_time in range(5):
+            self.flag = 0
+            self.anim_time += 1
+        elif self.anim_time in range(5, 10):
+            self.flag = 1
+            self.anim_time += 1
+        else:
+            self.flag = 0
+            self.anim_time = 0
 
     def update(self, slovar):
+        self.anim_update()
         if 'event' in slovar:
             if self.rect.collidepoint(slovar['pos']):
-                self.image = self.click_image
-                self.timer = 1
                 with open('res/colber/noname', 'w') as f:
                     f.write('1')
+                self.timer = 1
+                self.image = self.img[self.flag]
                 return
             else:
-                self.image = self.no_image
+                self.timer = 0
+                self.image = self.no_img[self.flag]
         else:
             if self.timer == 0:
-                self.image = self.no_image
-                self.timer += 1
+                self.image = self.no_img[self.flag]
             else:
                 self.timer += 1
                 self.timer = self.timer % 5
+                self.image = self.img[self.flag]
         with open('res/colber/noname', 'w') as f:
             f.write('0')
+        return
+
+
+class HP(pygame.sprite.Sprite):
+    def __init__(self, group, pos, image1, image2, image3, maxhp, noimg):
+        super().__init__(group)
+        self.img = [image1, image2, image3, noimg]
+        self.image = image1
+        self.hp = maxhp
+        self.rect = self.image.get_rect()
+        self.rect.x = pos[0]
+        self.rect.y = pos[1]
+
+    def resize(self, new_hp):
+        x = int(self.image.get_width() * (new_hp / self.hp))
+        y = self.image.get_height()
+        self.image = pygame.transform.scale(self.image, [x, y])
+
+    def reimage(self, new_hp):
+        x = new_hp / self.hp
+        if x <= 0:
+            self.image = self.img[3]
+        elif x <= 0.25:
+            self.image = self.img[2]
+        elif x <= 0.5:
+            self.image = self.img[1]
+        else:
+            self.image = self.img[0]
+
+    def update(self, slovar):
+        if 'new_hp' in slovar:
+            self.reimage(slovar['new_hp'])
+            self.resize(slovar['new_hp'])
         return
 
 
@@ -45,7 +95,8 @@ class Colber:
         self.c_bought = [[0, 10], [0, 100], [0, 1000], [0, 5000], [0, 10000]]
         self.c_effect = [1, 10, 25, 50, 100]
         self.t_bought = [[0, 50], [0, 500], [0, 1000], [0, 10000], [0, 50000]]
-        self.t_effect = [1, 10, 25, 100, 400]
+        self.t_effect = [2, 10, 25, 100, 400]
+        self.all_score = 0
         try:
             self.read_file()
         except Exception:
@@ -76,6 +127,7 @@ class Colber:
         if num == 2:
             self.level = 2
             self.score = 0
+            self.all_score = 0
             self.sc_click = 1
             self.sc_time = 0
             self.c_bought = [[0, 10], [0, 150], [0, 1500], [0, 10000],
@@ -83,7 +135,7 @@ class Colber:
             self.c_effect = [2, 15, 50, 100, 1000]
             self.t_bought = [[0, 50], [0, 550], [0, 1500], [0, 15000],
                              [0, 55000]]
-            self.t_effect = [1, 15, 50, 150, 2000]
+            self.t_effect = [2, 15, 50, 150, 2000]
             poses1 = [70 + 370 * i for i in range(5)]
             for ii in range(5):
                 self.ss_click_objs['c_items'].list[ii].new_text(
@@ -111,6 +163,7 @@ class Colber:
             self.c_bought[i] = [int(aa) for aa in vse[4 + i].split()]
         for i in range(5):
             self.t_bought[i] = [int(aa) for aa in vse[9 + i].split()]
+        self.all_score = int(vse[14])
 
     def write_file(self):
         with open('res/colber_sets.txt', 'w') as f:
@@ -124,6 +177,7 @@ class Colber:
                 print(bought[i], file=f)
             for i in range(5):
                 print(bought2[i], file=f)
+            print(self.all_score, file=f)
 
     def menu_init(self, size_master):
         self.field = size_master.transform(pygame.image.load('res/colber/field.png'), (1920, 1080))
@@ -240,22 +294,41 @@ class Colber:
         self.field = size_master.transform(
             pygame.image.load('res/colber/first/field.png'), (1920, 1080))
         pic0 = size_master.transform(
-            pygame.image.load('res/colber/first/colb_no_click.png'), (720, 720))
+            pygame.image.load('res/colber/first/colb_noclick.png'), (720, 720))
+        pic00 = size_master.transform(
+            pygame.image.load('res/colber/first/colb_noclick2.png'),
+            (720, 720))
         pic1 = size_master.transform(
             pygame.image.load('res/colber/first/colb_click.png'), (720, 720))
+        pic11 = size_master.transform(
+            pygame.image.load('res/colber/first/colb_click2.png'), (720, 720))
+        a0 = size_master.transform(
+            pygame.image.load('res/colber/first/b_600_115_off.png'), (600, 115))
+        a1 = size_master.transform(
+            pygame.image.load('res/colber/first/b_600_115_on.png'), (600, 115))
+        a3 = size_master.transform(
+            pygame.image.load('res/colber/first/cs_off.png'), (500, 500))
+        a4 = size_master.transform(
+            pygame.image.load('res/colber/first/сs_on.png'), (500, 500))
+        a5 = size_master.transform(
+            pygame.image.load('res/colber/first/ts_off.png'), (500, 500))
+        a6 = size_master.transform(
+            pygame.image.load('res/colber/first/ts_on.png'), (500, 500))
+        h1 = size_master.transform(
+            pygame.image.load('res/colber/first/hp1.png'), (500, 40))
+        h2 = size_master.transform(
+            pygame.image.load('res/colber/first/hp2.png'), (500, 40))
+        h3 = size_master.transform(
+            pygame.image.load('res/colber/first/hp3.png'), (500, 40))
+        noh = size_master.transform(
+            pygame.image.load('res/colber/first/nohp.png'), (500, 40))
         pos = size_master.repos_and_resize((600, 130))
+        pos2 = size_master.repos_and_resize((710, 50))
         self.first_sprites = pygame.sprite.Group()
-        MySprite(self.first_sprites, pos, pic0, pic1)
+        MySprite(self.first_sprites, pos, pic0, pic00, pic1, pic11)
+        HP(self.first_sprites, pos2, h1, h2, h3, 1000000, noh)
         colors = [(255, 255, 255), (200, 10, 10), (255, 255, 255)]
         factor = size_master.get_factor()
-        a0 = size_master.transform(
-            pygame.image.load('res/colber/b_600_115_off.png'), (600, 115))
-        a1 = size_master.transform(
-            pygame.image.load('res/colber/b_600_115_on.png'), (600, 115))
-        a3 = size_master.transform(
-            pygame.image.load('res/colber/b_500_500_off.png'), (500, 500))
-        a4 = size_master.transform(
-            pygame.image.load('res/colber/b_500_500_on.png'), (500, 500))
         text_slovar = {'positions': size_master.repos_and_resize((0, 920)),
                        'win': self.win,
                        'font': 'res/fonts/RobotoSlab-Regular.ttf',
@@ -279,6 +352,7 @@ class Colber:
         self.first_objs['exit'] = RButton(rbut_slovar.copy())
         self.first_objs['exit'].set_text(text_slovar)
         self.first_objs['exit'].move_center_text()
+        rbut_slovar['invisible'] = 0
         rbut_slovar['positions'] = size_master.repos_and_resize((1320, 920))
         text_slovar['text'] = 'ИДТИ ДАЛЬШЕ'
         text_slovar['positions'] = size_master.repos_and_resize((1320, 920))
@@ -288,13 +362,23 @@ class Colber:
         self.first_objs['cont'].closed = True
         self.first_objs['click'] = RButton(rbut2_slovar.copy())
         rbut2_slovar['positions'] = size_master.repos_and_resize((1410, 350))
+        rbut2_slovar['animations'] = [[a5], [a6]]
         self.first_objs['time'] = RButton(rbut2_slovar.copy())
         self.first_objs['t1'] = RText(text2_slovar.copy())
         text2_slovar['positions'] = size_master.repos_and_resize((10, 80))
         text2_slovar['text'] = str(self.score)
         self.first_objs['score'] = RText(text2_slovar.copy())
         text2_slovar['positions'] = size_master.repos_and_resize((1000, 10))
-        text2_slovar['text'] = 'ДЛЯ ПЕРЕХОДА:'
+        text3_slovar = {'positions': size_master.repos_and_resize((120, 550)),
+                        'win': self.win,
+                        'font': 'res/fonts/RobotoSlab-Regular.ttf',
+                        'text_size': size_master.resize_text(
+                            'res/fonts/RobotoSlab-Regular.ttf', 1),
+                        'color': colors[1], 'text': '0'}
+        self.first_objs['uron'] = RText(text3_slovar.copy())
+        text3_slovar['positions'] = size_master.repos_and_resize((1600, 550))
+        self.first_objs['usec'] = RText(text3_slovar.copy())
+        text2_slovar['text'] = 'ОСТАЛОСЬ:'
         self.first_objs['t2'] = RText(text2_slovar.copy())
         self.first_objs['t2'].move_right(size_master.resize_one(910))
         text2_slovar['positions'] = size_master.repos_and_resize((1000, 80))
@@ -334,7 +418,7 @@ class Colber:
                         'size': size_master.repos_and_resize((300, 600)),
                         'win': self.win,
                         'horizontal': True, 'indent': size_master.resize_one(70), 'kolvo': 5,
-                        'texts': ['+' + str(i) for i in self.c_effect],
+                        'texts': ['+' + str(i) for i in self.t_effect],
                         'animations': [[a2], [a3], [a4]]}
         rkeyb2_slovar = {
             'positions': size_master.repos_and_resize((70, 120)),
@@ -426,12 +510,17 @@ class Colber:
         self.field = size_master.transform(
             pygame.image.load('res/colber/first/field.png'), (1920, 1080))
         pic0 = size_master.transform(
-            pygame.image.load('res/colber/first/colb_no_click.png'), (720, 720))
+            pygame.image.load('res/colber/first/colb_noclick.png'), (720, 720))
+        pic00 = size_master.transform(
+            pygame.image.load('res/colber/first/colb_noclick.png'),
+            (720, 720))
         pic1 = size_master.transform(
             pygame.image.load('res/colber/first/colb_click.png'), (720, 720))
+        pic11 = size_master.transform(
+            pygame.image.load('res/colber/first/colb_click2.png'), (720, 720))
         pos = size_master.repos_and_resize((600, 130))
         self.sec_sprites = pygame.sprite.Group()
-        MySprite(self.sec_sprites, pos, pic0, pic1)
+        MySprite(self.sec_sprites, pos, pic0, pic00, pic1, pic11)
         colors = [(255, 255, 255), (200, 10, 10), (255, 255, 255)]
         factor = size_master.get_factor()
         a0 = size_master.transform(
@@ -552,6 +641,10 @@ class Colber:
         if self.level == 1:
             return self.first()
         if self.level == 2:
+            try:
+                del self.first_objs
+            except Exception:
+                pass
             return self.sec()
 
     def shop_c(self):
@@ -592,20 +685,25 @@ class Colber:
 
     def first(self):
         mouse_pos = pygame.mouse.get_pos()
+        self.first_objs['uron'].new_text(str(self.sc_click))
+        self.first_objs['usec'].new_text(str(self.sc_time))
         if self.time_flag:
             self.time_flag = False
             self.time_check = time.time()
         time_now = time.time()
         if self.time_check <= time_now - 0.5:
             self.score += self.sc_time // 2
+            self.all_score += self.sc_time // 2
             self.time_check = time_now
             self.write_file()
-        if self.score >= 1000000:
+        if self.all_score >= 1000000:
+            self.first_objs['t3'].new_text('0')
             self.first_objs['cont'].closed = False
+            self.first_objs['cont'].inv = False
         else:
-            self.first_objs['cont'].closed = True
+            self.first_objs['t3'].new_text(str(1000000 - self.all_score))
         self.first_objs['score'].new_text(str(self.score))
-        self.first_sprites.update({})
+        self.first_sprites.update({'new_hp': 1000000 - self.all_score})
         for i in self.first_objs:
             try:
                 self.first_objs[i].check(mouse_pos, 1)
@@ -622,6 +720,7 @@ class Colber:
                     result = f.read()
                     if result == '1':
                         self.score += self.sc_click
+                        self.all_score += self.sc_click
             if self.first_objs['exit'].is_tap(event, pygame.mouse.get_pos(), 1):
                 self.time_flag = True
                 return 4

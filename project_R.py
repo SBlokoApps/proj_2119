@@ -36,6 +36,7 @@ class RBase:
 # кортежа нового положения картинки, если оно другое нужно. Для нулевой
 # анимации положение не указывается. Например, [[anim0], [anim1, (120, 230)]],
 # tap_buts - кортеж из кнопок мыши, на которые реагирует кнопка
+# invisible - показывать/не показывать кнопку
 class RButton:
     def __init__(self, slovar):
         self.closed = False  # флажок: кнопка включена или нет
@@ -45,6 +46,10 @@ class RButton:
         self.size = slovar['size']
         self.animations = slovar['animations']
         self.tap_buttons = slovar['tap_buts']
+        if 'invisible' in slovar:
+            self.inv = True
+        else:
+            self.inv = False
         self.default = 0  # Анимация по-умолчанию
         self.is_text = False  # показывает, есть ли текст в кнопке, важно
         self.pic = self.animations[0][0]  # В этой переменной хранится
@@ -57,6 +62,9 @@ class RButton:
     def new_animation(self, name):  # Если вдруг надо добавить новую анимацию,
         # она добавится в конец, угадайте её номер
         self.animations.append(name)
+
+    def set_inv(self, bool):
+        self.inv = bool
 
     def del_animation(self, num):  # yдалит картинку анимации по её номеру
         del self.animations[num]
@@ -141,6 +149,8 @@ class RButton:
 
     def draw(self):  # Рисует кнопку в окне в нужных координатах, которые
         # заданы при объявлении, рисует текст кнопки, если такой есть
+        if self.inv:
+            return
         self.win.blit(self.pic, self.pos)  # Сама картинка
         if self.is_text:  # Именно для этого нам нужен был флажок текста
             self.text.draw()  # Текст может рисоваться своим методом
