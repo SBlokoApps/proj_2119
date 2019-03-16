@@ -146,6 +146,7 @@ class GreatScorer:
             return ' '.join(self.marks_1[len(self.marks_1) - x:])
 
     def get_text2(self):
+        x = 10
         if len(self.marks_2) <= x:
             return ' '.join(self.marks_2)
         else:
