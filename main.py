@@ -6,6 +6,8 @@ import os
 
 def main():
     pygame.init()
+    pygame.event.set_allowed([QUIT, MOUSEBUTTONDOWN, KEYDOWN, KEYUP])
+    clock = pygame.time.Clock()
     try:
         with open('res/screen_sets.txt', 'r') as f:
             vse = f.read().split()
@@ -17,7 +19,7 @@ def main():
         new_open = True
     breaked = False
     if new_open:
-        wsm_screen = pygame.display.set_mode((400, 300))
+        wsm_screen = pygame.display.set_mode((400, 300), pygame.DOUBLEBUF)
         pygame.display.set_caption('WindowSizeMaster')
         pygame.display.set_icon(pygame.image.load('res/wsm/icon.png'))
         wsm0 = True
@@ -26,7 +28,6 @@ def main():
         wsm2 = False
         user_wsm = WSMGUI(wsm_screen)
         while True:
-            pygame.time.delay(10)
             user_wsm.print_field()
             if wsm0:
                 res = user_wsm.zero_screen()
@@ -74,14 +75,16 @@ def main():
                     continue
                 if res == 1:
                     break
+            clock.tick(60)
             pygame.display.update()
         del user_wsm
     my_wsm = WSM()
     if not(breaked):
         if my_wsm.get_fullscreen():
-            window = pygame.display.set_mode(my_wsm.get_size(), pygame.FULLSCREEN)
+            window = pygame.display.set_mode(my_wsm.get_size(), pygame.FULLSCREEN | pygame.DOUBLEBUF)
         else:
-            window = pygame.display.set_mode(my_wsm.get_size())
+            window = pygame.display.set_mode(my_wsm.get_size(), pygame.DOUBLEBUF)
+        window.set_alpha(None)
         pygame.display.set_caption('US-f-CT')
         pygame.display.set_icon(pygame.image.load('res/icon.png'))
         my_gui = GUI(window, my_wsm)
@@ -99,7 +102,6 @@ def main():
         while True:
             if True:
                 break
-            pygame.time.delay(10)
             my_gui.print_field()
             if menu:
                 res = my_gui.menu()
@@ -217,6 +219,7 @@ def main():
                     simple = False
                     scors_menu = True
                     continue
+            clock.tick(60)
             pygame.display.update()
         if game_colber:
             del my_gui
@@ -225,9 +228,10 @@ def main():
             play = False
             shop_c = False
             shop_t = False
+            half = False
+            half_prew = False
             game = Colber(my_wsm, window)
             while True:
-                pygame.time.delay(10)
                 if menu:
                     res = game.menu()
                     if res == -1:
@@ -265,6 +269,10 @@ def main():
                         shop_t = True
                         play = False
                         continue
+                    if res == 1003:
+                        half = True
+                        play = False
+                        continue
                 if shop_c:
                     res = game.shop_c()
                     if res == -1:
@@ -281,6 +289,30 @@ def main():
                         shop_t = False
                         play = True
                         continue
+                if half:
+                    res = game.half()
+                    if res == -1:
+                        break
+                    if res == 4:
+                        half = False
+                        menu = True
+                        continue
+                    if res == 1:
+                        half = False
+                        play = True
+                        continue
+                    if res == 1234:
+                        half = False
+                        half_prew = True
+                if half_prew:
+                    res = game.hf_prew()
+                    if res == -1:
+                        break
+                    if res == 4:
+                        half_prew = False
+                        half = True
+                        continue
+                clock.tick(60)
                 pygame.display.update()
     pygame.quit()
 

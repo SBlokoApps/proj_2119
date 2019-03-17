@@ -8,7 +8,7 @@ class GUI:
         self.scorer = GreatScorer()
         self.colber = 0
         self.win = window
-        self.fld = size_master.transform(pygame.image.load(prefix + 'field.png'), (1920, 1080))
+        self.fld = size_master.transform(pygame.image.load(prefix + 'field.png').convert(), (1920, 1080))
         self.menu_objs = {}
         self.settings_objs = {}
         self.set_scors_objs = {}
@@ -22,7 +22,7 @@ class GUI:
         self.size_master = size_master
         self.inited_names = []
         self.loading = size_master.transform(
-            pygame.image.load('res/loading.png'), (1920, 1080))
+            pygame.image.load('res/loading.png').convert(), (1920, 1080))
 
     def master_init(self, *names):
         self.win.blit(self.loading, (0, 0))
@@ -41,11 +41,11 @@ class GUI:
         prefix = size_master.get_prefix()
         colors = size_master.get_colors()
         a0 = size_master.transform(
-            pygame.image.load(prefix + 'b_800_150_off.png'), (800, 150))
+            pygame.image.load(prefix + 'b_800_150_off.png').convert(), (800, 150))
         a1 = size_master.transform(
-            pygame.image.load(prefix + 'b_800_150_on.png'), (800, 150))
+            pygame.image.load(prefix + 'b_800_150_on.png').convert(), (800, 150))
         a2 = size_master.transform(
-            pygame.image.load(prefix + 'b_800_150_on2.png'), (800, 150))
+            pygame.image.load(prefix + 'b_800_150_on2.png').convert(), (800, 150))
         text_slovar = {'positions': size_master.repos_and_resize((0, 850)),
                        'win': self.win,
                        'font': 'res/fonts/RobotoSlab-Regular.ttf',
@@ -62,7 +62,7 @@ class GUI:
                        'size': size_master.repos_and_resize((800, 150)),
                        'tap_buts': (1, 3), 'animations': [[a0], [a2]]}
         base_slovar = {'positions': size_master.repos_and_resize((860, 230)),
-                       'picture': size_master.transform(pygame.image.load(prefix + 'us-f-ct_image.png'), (1000, 812)),
+                       'picture': size_master.transform(pygame.image.load(prefix + 'us-f-ct_image.png').convert(), (1000, 812)),
                        'win': self.win}
         self.menu_objs['picture'] = RBase(base_slovar.copy())
         self.menu_objs['title1'] = RTitle(title_slovar.copy())
@@ -96,17 +96,17 @@ class GUI:
         prefix = size_master.get_prefix()
         colors = size_master.get_colors()
         a0 = size_master.transform(
-            pygame.image.load(prefix + 'b_800_150_off.png'), (800, 150))
+            pygame.image.load(prefix + 'b_800_150_off.png').convert(), (800, 150))
         a1 = size_master.transform(
-            pygame.image.load(prefix + 'b_800_150_on.png'), (800, 150))
+            pygame.image.load(prefix + 'b_800_150_on.png').convert(), (800, 150))
         a2 = size_master.transform(
-            pygame.image.load(prefix + 'b_800_150_on2.png'), (800, 150))
+            pygame.image.load(prefix + 'b_800_150_on2.png').convert(), (800, 150))
         a10 = size_master.transform(
-            pygame.image.load(prefix + 'b_1500_150_off.png'), (1500, 150))
+            pygame.image.load(prefix + 'b_1500_150_off.png').convert(), (1500, 150))
         a11 = size_master.transform(
-            pygame.image.load(prefix + 'b_1500_150_on.png'), (1500, 150))
+            pygame.image.load(prefix + 'b_1500_150_on.png').convert(), (1500, 150))
         a12 = size_master.transform(
-            pygame.image.load(prefix + 'b_1500_150_on2.png'), (1500, 150))
+            pygame.image.load(prefix + 'b_1500_150_on2.png').convert(), (1500, 150))
         text_slovar = {'positions': size_master.repos_and_resize((0, 850)),
                        'win': self.win,
                        'font': 'res/fonts/RobotoSlab-Regular.ttf',
@@ -154,17 +154,17 @@ class GUI:
         prefix = size_master.get_prefix()
         colors = size_master.get_colors()
         a0 = size_master.transform(
-            pygame.image.load(prefix + 'b_800_150_off.png'), (800, 150))
+            pygame.image.load(prefix + 'b_800_150_off.png').convert(), (800, 150))
         a1 = size_master.transform(
-            pygame.image.load(prefix + 'b_800_150_on.png'), (800, 150))
+            pygame.image.load(prefix + 'b_800_150_on.png').convert(), (800, 150))
         a2 = size_master.transform(
-            pygame.image.load(prefix + 'b_800_150_on2.png'), (800, 150))
+            pygame.image.load(prefix + 'b_800_150_on2.png').convert(), (800, 150))
         a10 = size_master.transform(
-            pygame.image.load(prefix + 'b_1500_150_off.png'), (1500, 150))
+            pygame.image.load(prefix + 'b_1500_150_off.png').convert(), (1500, 150))
         a11 = size_master.transform(
-            pygame.image.load(prefix + 'b_1500_150_on.png'), (1500, 150))
+            pygame.image.load(prefix + 'b_1500_150_on.png').convert(), (1500, 150))
         a12 = size_master.transform(
-            pygame.image.load(prefix + 'b_1500_150_on2.png'), (1500, 150))
+            pygame.image.load(prefix + 'b_1500_150_on2.png').convert(), (1500, 150))
         text_slovar = {'positions': size_master.repos_and_resize((0, 850)),
                        'win': self.win,
                        'font': 'res/fonts/RobotoSlab-Regular.ttf',
@@ -212,11 +212,11 @@ class GUI:
         prefix = size_master.get_prefix()
         colors = size_master.get_colors()
         a0 = size_master.transform(
-            pygame.image.load(prefix + 'b_800_150_off.png'), (800, 150))
+            pygame.image.load(prefix + 'b_800_150_off.png').convert(), (800, 150))
         a1 = size_master.transform(
-            pygame.image.load(prefix + 'b_800_150_on.png'), (800, 150))
+            pygame.image.load(prefix + 'b_800_150_on.png').convert(), (800, 150))
         a2 = size_master.transform(
-            pygame.image.load(prefix + 'b_800_150_on2.png'), (800, 150))
+            pygame.image.load(prefix + 'b_800_150_on2.png').convert(), (800, 150))
         text_slovar = {'positions': size_master.repos_and_resize((0, 850)),
                        'win': self.win,
                        'font': 'res/fonts/RobotoSlab-Regular.ttf',
@@ -269,15 +269,15 @@ class GUI:
         prefix = size_master.get_prefix()
         colors = size_master.get_colors()
         a0 = size_master.transform(
-            pygame.image.load(prefix + 'b_800_150_off.png'), (800, 150))
+            pygame.image.load(prefix + 'b_800_150_off.png').convert(), (800, 150))
         a1 = size_master.transform(
-            pygame.image.load(prefix + 'b_800_150_on.png'), (800, 150))
+            pygame.image.load(prefix + 'b_800_150_on.png').convert(), (800, 150))
         a2 = size_master.transform(
-            pygame.image.load(prefix + 'b_800_150_on2.png'), (800, 150))
+            pygame.image.load(prefix + 'b_800_150_on2.png').convert(), (800, 150))
         a3 = size_master.transform(
-            pygame.image.load(prefix + 'b_600_115_off.png'), (600, 115))
+            pygame.image.load(prefix + 'b_600_115_off.png').convert(), (600, 115))
         a4 = size_master.transform(
-            pygame.image.load(prefix + 'b_600_115_on.png'), (600, 115))
+            pygame.image.load(prefix + 'b_600_115_on.png').convert(), (600, 115))
         text_slovar = {'positions': size_master.repos_and_resize((0, 850)),
                        'win': self.win,
                        'font': 'res/fonts/RobotoSlab-Regular.ttf',
@@ -322,11 +322,11 @@ class GUI:
         prefix = size_master.get_prefix()
         colors = size_master.get_colors()
         a0 = size_master.transform(
-            pygame.image.load(prefix + 'b_800_150_off.png'), (800, 150))
+            pygame.image.load(prefix + 'b_800_150_off.png').convert(), (800, 150))
         a1 = size_master.transform(
-            pygame.image.load(prefix + 'b_800_150_on.png'), (800, 150))
+            pygame.image.load(prefix + 'b_800_150_on.png').convert(), (800, 150))
         a2 = size_master.transform(
-            pygame.image.load(prefix + 'b_800_150_on2.png'), (800, 150))
+            pygame.image.load(prefix + 'b_800_150_on2.png').convert(), (800, 150))
         text_slovar = {'positions': size_master.repos_and_resize((0, 850)),
                        'win': self.win,
                        'font': 'res/fonts/RobotoSlab-Regular.ttf',
@@ -353,10 +353,10 @@ class GUI:
                            *#enter#* mailbloko@gmail.com''', 'auto': 0,
                            'window_width': size_master.resize_one(1700), 'indent': size_master.resize_one(80)}
         base_slovar = {'positions': size_master.repos_and_resize((660, 480)),
-                       'picture': size_master.transform(pygame.image.load(prefix + 'SBApps.png'), (650, 306)),
+                       'picture': size_master.transform(pygame.image.load(prefix + 'SBApps.png').convert(), (650, 306)),
                        'win': self.win}
         base2_slovar = {'positions': size_master.repos_and_resize((1360, 428)),
-                       'picture': size_master.transform(pygame.image.load(prefix + 'project_r_image.png'), (410, 410)),
+                       'picture': size_master.transform(pygame.image.load(prefix + 'project_r_image.png').convert(), (410, 410)),
                        'win': self.win}
         self.about_pr_objs['proj_r'] = RBase(base2_slovar.copy())
         self.about_pr_objs['sbapps'] = RBase(base_slovar.copy())
@@ -380,11 +380,11 @@ class GUI:
         prefix = size_master.get_prefix()
         colors = size_master.get_colors()
         a0 = size_master.transform(
-            pygame.image.load(prefix + 'b_600_115_off.png'), (600, 115))
+            pygame.image.load(prefix + 'b_600_115_off.png').convert(), (600, 115))
         a1 = size_master.transform(
-            pygame.image.load(prefix + 'b_600_115_on.png'), (600, 115))
+            pygame.image.load(prefix + 'b_600_115_on.png').convert(), (600, 115))
         a2 = size_master.transform(
-            pygame.image.load(prefix + 'b_600_115_on2.png'), (600, 115))
+            pygame.image.load(prefix + 'b_600_115_on2.png').convert(), (600, 115))
         text_slovar = {'positions': size_master.repos_and_resize((0, 850)),
                        'win': self.win,
                        'font': 'res/fonts/RobotoSlab-Regular.ttf',
@@ -396,7 +396,7 @@ class GUI:
                        'size': size_master.repos_and_resize((600, 115)),
                        'tap_buts': (1, 3), 'animations': [[a0], [a2]]}
         base_slovar = {'positions': size_master.repos_and_resize((0, 0)),
-                       'picture': size_master.transform(pygame.image.load(prefix + 'versions_pic.png'), (1920, 850)),
+                       'picture': size_master.transform(pygame.image.load(prefix + 'versions_pic.png').convert(), (1920, 850)),
                        'win': self.win}
         self.vers_menu_objs['picture'] = RBase(base_slovar.copy())
         self.vers_menu_objs['exit'] = RButton(rbut_slovar.copy())
@@ -421,11 +421,11 @@ class GUI:
         prefix = size_master.get_prefix()
         colors = size_master.get_colors()
         a0 = size_master.transform(
-            pygame.image.load(prefix + 'b_800_150_off.png'), (800, 150))
+            pygame.image.load(prefix + 'b_800_150_off.png').convert(), (800, 150))
         a1 = size_master.transform(
-            pygame.image.load(prefix + 'b_800_150_on.png'), (800, 150))
+            pygame.image.load(prefix + 'b_800_150_on.png').convert(), (800, 150))
         a2 = size_master.transform(
-            pygame.image.load(prefix + 'b_800_150_on2.png'), (800, 150))
+            pygame.image.load(prefix + 'b_800_150_on2.png').convert(), (800, 150))
         text_slovar = {'positions': size_master.repos_and_resize((0, 850)),
                        'win': self.win,
                        'font': 'res/fonts/RobotoSlab-Regular.ttf',
@@ -471,25 +471,25 @@ class GUI:
         prefix = size_master.get_prefix()
         colors = size_master.get_colors()
         a0 = size_master.transform(
-            pygame.image.load(prefix + 'b_600_115_off.png'), (600, 115))
+            pygame.image.load(prefix + 'b_600_115_off.png').convert(), (600, 115))
         a1 = size_master.transform(
-            pygame.image.load(prefix + 'b_600_115_on.png'), (600, 115))
+            pygame.image.load(prefix + 'b_600_115_on.png').convert(), (600, 115))
         a2 = size_master.transform(
-            pygame.image.load(prefix + 'b_600_115_on2.png'), (600, 115))
+            pygame.image.load(prefix + 'b_600_115_on2.png').convert(), (600, 115))
         a3 = size_master.transform(
-            pygame.image.load(prefix + 'b_100_100_off.png'), (100, 100))
+            pygame.image.load(prefix + 'b_100_100_off.png').convert(), (100, 100))
         a4 = size_master.transform(
-            pygame.image.load(prefix + 'b_100_100_on.png'), (100, 100))
+            pygame.image.load(prefix + 'b_100_100_on.png').convert(), (100, 100))
         a5 = size_master.transform(
-            pygame.image.load(prefix + 'b_100_100_on2.png'), (100, 100))
+            pygame.image.load(prefix + 'b_100_100_on2.png').convert(), (100, 100))
         a6 = size_master.transform(
-            pygame.image.load(prefix + 'b_100_100_on3.png'), (100, 100))
+            pygame.image.load(prefix + 'b_100_100_on3.png').convert(), (100, 100))
         a7 = size_master.transform(
-            pygame.image.load(prefix + 'b_100_100_on4.png'), (100, 100))
+            pygame.image.load(prefix + 'b_100_100_on4.png').convert(), (100, 100))
         pic1 = size_master.transform(
-            pygame.image.load(prefix + 'pic_1100_100.png'), (1100, 100))
+            pygame.image.load(prefix + 'pic_1100_100.png').convert(), (1100, 100))
         pic2 = size_master.transform(
-            pygame.image.load(prefix + 'pic_1820_150.png'), (1820, 150))
+            pygame.image.load(prefix + 'pic_1820_150.png').convert(), (1820, 150))
         text_slovar = {'positions': size_master.repos_and_resize((0, 850)),
                        'win': self.win,
                        'font': 'res/fonts/RobotoSlab-Regular.ttf',

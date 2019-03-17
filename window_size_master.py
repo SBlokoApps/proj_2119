@@ -103,7 +103,7 @@ class WSMGUI:
         self.theme = -1
         self.screen_size = []
         self.win = window
-        self.fld = pygame.image.load('res/wsm/field.png')
+        self.fld = pygame.image.load('res/wsm/field.png').convert()
         # В каждом из таких словарей при инициализации запишутся
         # объекты интерфойса
         self.zero_objs = {}
@@ -111,11 +111,11 @@ class WSMGUI:
         self.sec_objs = {}
         self.third_objs = {}
         # Анимации кнопок и полей ввода
-        a0 = pygame.image.load('res/wsm/button_off.png')
-        a1 = pygame.image.load('res/wsm/button_on.png')
-        a2 = pygame.image.load('res/wsm/button_on2.png')
-        a3 = pygame.image.load('res/wsm/input_off.png')
-        a4 = pygame.image.load('res/wsm/input_on.png')
+        a0 = pygame.image.load('res/wsm/button_off.png').convert()
+        a1 = pygame.image.load('res/wsm/button_on.png').convert()
+        a2 = pygame.image.load('res/wsm/button_on2.png').convert()
+        a3 = pygame.image.load('res/wsm/input_off.png').convert()
+        a4 = pygame.image.load('res/wsm/input_on.png').convert()
         # Словари для создания объектов project_R
         t_slovar = {'positions': (15, 3), 'win': self.win,
                     'font': 'res/fonts/Staatliches-Regular.ttf',
