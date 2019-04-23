@@ -36,7 +36,7 @@ class Particle(pygame.sprite.Sprite):
 # Класс спрайта-колбы
 class MySprite(pygame.sprite.Sprite):
     def __init__(self, group, pos, image, image2, click_image, click_image2,
-                 size_mas):  # На входе разные картинки анимации, группа
+                 size_mas, allow):  # На входе разные картинки анимации, группа
         super().__init__(group)
         # Загружаем нужную анимацию
         self.img = [click_image, click_image2]
@@ -55,6 +55,7 @@ class MySprite(pygame.sprite.Sprite):
         # Запомним в памяти несколько переменных для создания частиц
         self.size_master = size_mas
         self.group = group
+        self.allow = allow
         self.part_img = pygame.image.load("res/colber/part.png")
         self.part_vars = [self.size_master.resize_one(1920),
                           self.size_master.resize_one(1080),
@@ -91,7 +92,8 @@ class MySprite(pygame.sprite.Sprite):
                 # Меняем анимацию, запускаем таймер, создаем частицы
                 self.timer = 1
                 self.image = self.img[self.flag]
-                self.create_particles(slovar['pos'])
+                if self.allow == 'T':
+                    self.create_particles(slovar['pos'])
                 # Вернем функцию, чтобы не выполнить остальное
                 return
         # Иначе - просто обновление анимации с проверкой по таймеру.
@@ -180,6 +182,11 @@ class Colber:
         self.t_effect = [2, 12, 36, 120, 300]
         self.all_score = 0
         self.half_first = '0'
+        self.need_score = 10000000
+        self.all = 0
+        self.allow_half = 'T'
+        self.allow_parts = 'T'
+        self.allow_sound = 'T'
         # Пытаемся прочитать сохранения, если не получится, позже сохранятся
         # настройки в переменных выше
         try:
@@ -195,15 +202,12 @@ class Colber:
         self.first_objs = {}
         self.fs_click_objs = {}
         self.fs_time_objs = {}
-        self.sec_objs = {}
-        self.ss_click_objs = {}
-        self.ss_time_objs = {}
         self.fs_half_objs = {}
         self.hf_prew_objs = {}
-        # Инициализируем меню и настройки. Да, они в коде называются
+        # Инициализируем меню и настройки. Да, настройки в коде называются
         # прогрессом, но это пережитки прошлого, которые мне лень править
         self.menu_init(size_master)
-        self.progress_init()
+        self.progress_init(size_master)
         self.size_master = size_master
         self.pervii_raz = True  # Во избежание повторной инициализации
         # Фон загрузки
@@ -228,6 +232,10 @@ class Colber:
             self.t_bought[i] = [int(aa) for aa in vse[9 + i].split()]
         self.all_score = int(vse[14])
         self.half_first = vse[15]
+        self.all = int(vse[16])
+        self.allow_half = vse[17]
+        self.allow_parts = vse[18]
+        self.allow_sound = vse[19]
 
     # Метод записи настроек и прогресса в файл
     def write_file(self):
@@ -245,6 +253,10 @@ class Colber:
                 f.write(str(bought2[i]) + '\n')
             f.write(str(self.all_score) + '\n')
             f.write(str(self.half_first) + '\n')
+            f.write(str(self.all) + '\n')
+            f.write(self.allow_half + '\n')
+            f.write(self.allow_parts + '\n')
+            f.write(self.allow_sound + '\n')
 
     # Метод перехода на новый уровень menu - флаг перехода из меню/с другого
     # уровня показывает - надо ли сбрасывать переменные, или они
@@ -254,28 +266,38 @@ class Colber:
         self.draw_field(self.loading)
         pygame.display.update()
         if num == 1 and self.pervii_raz:
+            self.need_score = 10000000
             self.pervii_raz = False
             # Инициализация первого уровня, если он не был инициализирован
-            self.first_init(self.size_master)
-            self.fs_click_init(self.size_master)
-            self.fs_time_init(self.size_master)
-            self.fs_half_init(self.size_master)
-        if num == 2 and self.pervii_raz:  # Второй уровень
+            self.first_init(self.size_master, 'first')
+            self.fs_click_init(self.size_master, 'first')
+            self.fs_time_init(self.size_master, 'first')
+            self.fs_half_init(self.size_master, 'first')
+        elif self.pervii_raz:  # Второй уровень
             # Если перешло не из меню, значит прошел переход уровня -
             # надо сбросить значения главных переменных
             self.pervii_raz = False
-            if not(menu):
-                self.level = 2
+            if menu:
+                stepen = (self.level - 1) / 2
+                stepen2 = 10 ** stepen
+                self.need_score = int(10000000 * stepen2)
+            else:
+                self.level += 1
                 self.score = 0
                 self.all_score = 0
                 self.sc_click = 1
                 self.sc_time = 0
-                self.c_bought = [[0, 10], [0, 400], [0, 5000], [0, 12000],
-                                 [0, 100000]]
-                self.c_effect = [2, 40, 100, 200, 400]
-                self.t_bought = [[0, 50], [0, 500], [0, 10000], [0, 90000],
-                                 [0, 150000]]
-                self.t_effect = [2, 12, 36, 120, 300]
+                stepen = (self.level - 1) / 2
+                stepen2 = 10 ** stepen
+                self.need_score = int(10000000 * stepen2)
+                s3 = 2 ** stepen
+                s4 = 1.5 ** stepen
+                self.c_bought = [[0, int(10 * s3)], [0, int(400 * s3)], [0, int(5000 * s3)], [0, int(12000 * s3)],
+                                 [0, int(100000 * s3)]]
+                self.c_effect = [int(2 * s4), int(40 * s4), int(100 * s4), int(200 * s4), int(400 * s4)]
+                self.t_bought = [[0, int(50 * s3)], [0, int(500 * s3)], [0, int(10000 * s3)], [0, int(90000 * s3)],
+                                 [0, int(150000 * s3)]]
+                self.t_effect = [int(2 * s4), int(12 * s4), int(36 * s4), int(120 * s4), int(300 * s4)]
                 self.write_file()
                 # Удалим ресурсы первого уровня
                 try:
@@ -288,38 +310,34 @@ class Colber:
                 except Exception:
                     pass
             # Инициализация второго уровня
-            self.sec_init(self.size_master)
-            self.ss_click_init(self.size_master)
-            self.ss_time_init(self.size_master)
+            if self.level % 2 == 0:
+                pr = 'sec'
+            else:
+                pr = 'first'
+            self.first_objs = {}
+            self.fs_click_objs = {}
+            self.fs_time_objs = {}
+            self.first_init(self.size_master, pr)
+            self.fs_click_init(self.size_master, pr)
+            self.fs_time_init(self.size_master, pr)
+            self.fs_half_init(self.size_master, pr)
 
     # Метод, который посылает на нужный уровень, так проще писать,
     # чем посылать из главного цикла прямо
     def choose_lvl(self):
-        if self.level == 1:
-            return self.first()
-        if self.level == 2:
-            return self.sec()
+        return self.first()
 
     # Аналогично для магазина урон
     def shop_c(self):
-        if self.level == 1:
-            return self.fs_click()
-        if self.level == 2:
-            return self.ss_click()
+        return self.fs_click()
 
     # Аналогично для магазина у/сек
     def shop_t(self):
-        if self.level == 1:
-            return self.fs_time()
-        if self.level == 2:
-            return self.ss_time()
+        return self.fs_time()
 
     # Аналогично для полминуток безумия
     def half(self):
-        if self.level == 1:
-            return self.fs_half()
-        if self.level == 2:
-            return self.ss_half()
+        return self.fs_half()
 
     # Прорисовываем фон
     def draw_field(self, field):
@@ -329,7 +347,7 @@ class Colber:
     def menu_init(self, size_master):
         # Фон
         self.menu_field = size_master.transform(
-            pygame.image.load('res/colber/field.png').convert(), (1920, 1080))
+            pygame.image.load('res/colber/field.png').convert_alpha(), (1920, 1080))
         # Картинки кнопки
         a0 = size_master.transform(
             pygame.image.load('res/colber/b_600_115_off.png'), (600, 115))
@@ -369,58 +387,122 @@ class Colber:
         self.menu_objs['exit'].move_center_text()
 
     # Инициализируем настройки
-    def progress_init(self):
-        pass
-
-    # Инициализируем первый уровень
-    def first_init(self, size_master):
-        # Фон и фон после победы
-        self.first_field2 = size_master.transform(
-            pygame.image.load('res/colber/first/last_field.png').convert(), (1920, 1080))
-        self.first_field = size_master.transform(
-            pygame.image.load('res/colber/first/field.png').convert(), (1920, 1080))
-        # Картинки колбы
-        pic0 = size_master.transform(
-            pygame.image.load('res/colber/first/colb_noclick.png'),
-            (720, 720))
-        pic00 = size_master.transform(
-            pygame.image.load('res/colber/first/colb_noclick2.png'),
-            (720, 720))
-        pic1 = size_master.transform(
-            pygame.image.load('res/colber/first/colb_click.png'), (720, 720))
-        pic11 = size_master.transform(
-            pygame.image.load('res/colber/first/colb_click2.png'), (720, 720))
+    def progress_init(self, size_master):
+        # Фон
+        self.prog_field = size_master.transform(
+            pygame.image.load('res/colber/first/field.png').convert_alpha(),
+            (1920, 1080))
         # Картинки кнопки
         a0 = size_master.transform(
-            pygame.image.load('res/colber/first/b_600_115_off.png'),
+            pygame.image.load('res/colber/b_600_115_off.png'), (1000, 115))
+        a1 = size_master.transform(
+            pygame.image.load('res/colber/b_600_115_on.png'), (1000, 115))
+        a2 = size_master.transform(
+            pygame.image.load('res/colber/b_600_115_on2.png'), (1000, 115))
+        # Словари для проджект р
+        text_slovar = {'positions': size_master.repos_and_resize((920, 263)),
+                       'win': self.win,
+                       'font': 'res/fonts/RobotoSlab-Regular.ttf',
+                       'text_size': size_master.resize_text(
+                           'res/fonts/RobotoSlab-Regular.ttf', 0.7),
+                       'color': (255, 216, 0), 'text': 'ВКЛЮЧИТЬ ЧАСТИЦЫ'}
+        text2_slovar = {'positions': size_master.repos_and_resize((10, 263)),
+                       'win': self.win,
+                       'font': 'res/fonts/RobotoSlab-Regular.ttf',
+                       'text_size': size_master.resize_text(
+                           'res/fonts/RobotoSlab-Regular.ttf', 0.7),
+                       'color': (255, 216, 0), 'text': 'УРОВЕНЬ: '}
+        rbut_slovar = {'positions': size_master.repos_and_resize((920, 263)),
+                       'win': self.win,
+                       'size': size_master.repos_and_resize((1000, 115)),
+                       'tap_buts': (1, 3), 'animations': [[a0], [a1]]}
+        self.progress_objs['t1'] = RText(text2_slovar.copy())
+        text2_slovar['text'] = 'ВСЕГО_КЛИКОВ: '
+        text2_slovar['positions'] = size_master.repos_and_resize((0, 433))
+        self.progress_objs['t2'] = RText(text2_slovar.copy())
+        # Кнопка играть
+        self.progress_objs['part'] = RButton(rbut_slovar.copy())
+        self.progress_objs['part'].set_text(text_slovar)
+        self.progress_objs['part'].move_center_text()
+        # Меняем словарь, кнопка настроек
+        rbut_slovar['positions'] = size_master.repos_and_resize((920, 433))
+        text_slovar['text'] = 'ВКЛЮЧИТЬ ЗВУК'
+        text_slovar['positions'] = size_master.repos_and_resize((920, 433))
+        self.progress_objs['sound'] = RButton(rbut_slovar.copy())
+        self.progress_objs['sound'].set_text(text_slovar)
+        self.progress_objs['sound'].move_center_text()
+        # Меняем словарь, кнопка выхода
+        rbut_slovar['positions'] = size_master.repos_and_resize((920, 603))
+        text_slovar['text'] = 'ВКЛЮЧИТЬ ПОЛМИНУТКИ'
+        text_slovar['positions'] = size_master.repos_and_resize((920, 603))
+        self.progress_objs['half'] = RButton(rbut_slovar.copy())
+        self.progress_objs['half'].set_text(text_slovar)
+        self.progress_objs['half'].move_center_text()
+        # Меняем словарь, кнопка выхода
+        rbut_slovar['animations'] = [[a0], [a2]]
+        rbut_slovar['positions'] = size_master.repos_and_resize((920, 943))
+        text_slovar['text'] = 'ВЫХОД'
+        text_slovar['positions'] = size_master.repos_and_resize((920, 943))
+        self.progress_objs['exit'] = RButton(rbut_slovar.copy())
+        self.progress_objs['exit'].set_text(text_slovar)
+        self.progress_objs['exit'].move_center_text()
+        # Меняем словарь, кнопка выхода
+        rbut_slovar['positions'] = size_master.repos_and_resize((920, 773))
+        text_slovar['text'] = 'СБРОС НАСТРОЕК'
+        text_slovar['positions'] = size_master.repos_and_resize((920, 773))
+        self.progress_objs['reset'] = RButton(rbut_slovar.copy())
+        self.progress_objs['reset'].set_text(text_slovar)
+        self.progress_objs['reset'].move_center_text()
+
+    # Инициализируем первый уровень
+    def first_init(self, size_master, pref):
+        # Фон и фон после победы
+        self.first_field2 = size_master.transform(
+            pygame.image.load('res/colber/' + pref + '/last_field.png').convert_alpha(), (1920, 1080))
+        self.first_field = size_master.transform(
+            pygame.image.load('res/colber/' + pref + '/field.png').convert_alpha(), (1920, 1080))
+        # Картинки колбы
+        pic0 = size_master.transform(
+            pygame.image.load('res/colber/' + pref + '/colb_noclick.png').convert_alpha(),
+            (720, 720))
+        pic00 = size_master.transform(
+            pygame.image.load('res/colber/' + pref + '/colb_noclick2.png').convert_alpha(),
+            (720, 720))
+        pic1 = size_master.transform(
+            pygame.image.load('res/colber/' + pref + '/colb_click.png').convert_alpha(), (720, 720))
+        pic11 = size_master.transform(
+            pygame.image.load('res/colber/' + pref + '/colb_click2.png').convert_alpha(), (720, 720))
+        # Картинки кнопки
+        a0 = size_master.transform(
+            pygame.image.load('res/colber/' + pref + '/b_600_115_off.png').convert_alpha(),
             (600, 115))
         a1 = size_master.transform(
-            pygame.image.load('res/colber/first/b_600_115_on.png'),
+            pygame.image.load('res/colber/' + pref + '/b_600_115_on.png').convert_alpha(),
             (600, 115))
         # Картинки кнопок магазинов
         a3 = size_master.transform(
-            pygame.image.load('res/colber/first/cs_off.png'), (500, 500))
+            pygame.image.load('res/colber/' + pref + '/cs_off.png').convert_alpha(), (500, 500))
         a4 = size_master.transform(
-            pygame.image.load('res/colber/first/cs_on.png'), (500, 500))
+            pygame.image.load('res/colber/' + pref + '/cs_on.png').convert_alpha(), (500, 500))
         a5 = size_master.transform(
-            pygame.image.load('res/colber/first/ts_off.png'), (500, 500))
+            pygame.image.load('res/colber/' + pref + '/ts_off.png').convert_alpha(), (500, 500))
         a6 = size_master.transform(
-            pygame.image.load('res/colber/first/ts_on.png'), (500, 500))
+            pygame.image.load('res/colber/' + pref + '/ts_on.png').convert_alpha(), (500, 500))
         # Картинки полоски здоровья
         h1 = size_master.transform(
-            pygame.image.load('res/colber/first/hp1.png').convert(), (500, 40))
+            pygame.image.load('res/colber/' + pref + '/hp1.png').convert_alpha(), (500, 40))
         h2 = size_master.transform(
-            pygame.image.load('res/colber/first/hp2.png').convert(), (500, 40))
+            pygame.image.load('res/colber/' + pref + '/hp2.png').convert_alpha(), (500, 40))
         h3 = size_master.transform(
-            pygame.image.load('res/colber/first/hp3.png').convert(), (500, 40))
+            pygame.image.load('res/colber/' + pref + '/hp3.png').convert_alpha(), (500, 40))
         # Координаты спрайтов - колбы и здоровья
         pos = size_master.repos_and_resize((600, 130))
         pos2 = size_master.repos_and_resize((710, 50))
         # Создаем группу спрайтов и сами спрайты
         self.first_sprites = pygame.sprite.Group()
         MySprite(self.first_sprites, pos, pic0, pic00, pic1,
-                 pic11, size_master)
-        HP(self.first_sprites, pos2, h1, h2, h3, 10000000)
+                 pic11, size_master, self.allow_parts)
+        HP(self.first_sprites, pos2, h1, h2, h3, self.need_score)
         # Словари для интерфейса
         text_slovar = {'positions': size_master.repos_and_resize((0, 920)),
                        'win': self.win,
@@ -481,28 +563,28 @@ class Colber:
         self.first_objs['t2'] = RText(text2_slovar.copy())
         self.first_objs['t2'].move_right(size_master.resize_one(910))
         text2_slovar['positions'] = size_master.repos_and_resize((1000, 80))
-        text2_slovar['text'] = '10000000'
+        text2_slovar['text'] = str(self.need_score)
         self.first_objs['t3'] = RText(text2_slovar.copy())
         self.first_objs['t3'].move_right(size_master.resize_one(910))
 
     # Инициализируем магазин урон первого уровня
-    def fs_click_init(self, size_master):
+    def fs_click_init(self, size_master, pref):
         # Картинки кнопки
         a0 = size_master.transform(
-            pygame.image.load('res/colber/first/b_600_115_off.png'),
+            pygame.image.load('res/colber/' + pref + '/b_600_115_off.png').convert_alpha(),
             (600, 115))
         a1 = size_master.transform(
-            pygame.image.load('res/colber/first/b_600_115_on.png'),
+            pygame.image.load('res/colber/' + pref + '/b_600_115_on.png').convert_alpha(),
             (600, 115))
         # Картинки кнопок-панелей покупки
         a2 = size_master.transform(
-            pygame.image.load('res/colber/first/b_300_600_off.png'),
+            pygame.image.load('res/colber/' + pref + '/b_300_600_off.png').convert_alpha(),
             (300, 600))
         a3 = size_master.transform(
-            pygame.image.load('res/colber/first/b_300_600_on.png'),
+            pygame.image.load('res/colber/' + pref + '/b_300_600_on.png').convert_alpha(),
             (300, 600))
         a4 = size_master.transform(
-            pygame.image.load('res/colber/first/b_300_600_on2.png'),
+            pygame.image.load('res/colber/' + pref + '/b_300_600_on2.png').convert_alpha(),
             (300, 600))
         # Словари для интерфейса
         text_slovar = {'positions': size_master.repos_and_resize((0, 920)),
@@ -558,7 +640,7 @@ class Colber:
         self.fs_click_objs['t2'] = RText(text2_slovar.copy())
         self.fs_click_objs['t2'].move_right(size_master.resize_one(910))
         text2_slovar['positions'] = size_master.repos_and_resize((1000, 80))
-        text2_slovar['text'] = '10000000'
+        text2_slovar['text'] = str(self.need_score)
         self.fs_click_objs['t3'] = RText(text2_slovar.copy())
         self.fs_click_objs['t3'].move_right(size_master.resize_one(910))
         # Дальше создание картинок и дополнительных текстов на
@@ -576,7 +658,7 @@ class Colber:
             base_slovar['positions'] = size_master.repos_and_resize(
                 (poses1[i], 250))
             base_slovar['picture'] = size_master.transform(pygame.image.load(
-                'res/colber/first/c_' + str(i + 1) + '.png'), (300, 300))
+                'res/colber/' + pref + '/c_' + str(i + 1) + '.png'), (300, 300))
             self.fsc_pics.append(RBase(base_slovar))
         for i in range(5):
             text_slovar['positions'] = size_master.repos_and_resize(
@@ -588,21 +670,21 @@ class Colber:
 
     # Инициализация магазина у/сек первого уроня, код аналогичен коду
     # магазина выше, комментировать не буду
-    def fs_time_init(self, size_master):
+    def fs_time_init(self, size_master, pref):
         a0 = size_master.transform(
-            pygame.image.load('res/colber/first/b_600_115_off.png'),
+            pygame.image.load('res/colber/' + pref + '/b_600_115_off.png').convert_alpha(),
             (600, 115))
         a1 = size_master.transform(
-            pygame.image.load('res/colber/first/b_600_115_on.png'),
+            pygame.image.load('res/colber/' + pref + '/b_600_115_on.png').convert_alpha(),
             (600, 115))
         a2 = size_master.transform(
-            pygame.image.load('res/colber/first/b_300_600_off.png'),
+            pygame.image.load('res/colber/' + pref + '/b_300_600_off.png').convert_alpha(),
             (300, 600))
         a3 = size_master.transform(
-            pygame.image.load('res/colber/first/b_300_600_on.png'),
+            pygame.image.load('res/colber/' + pref + '/b_300_600_on.png').convert_alpha(),
             (300, 600))
         a4 = size_master.transform(
-            pygame.image.load('res/colber/first/b_300_600_on2.png'),
+            pygame.image.load('res/colber/' + pref + '/b_300_600_on2.png').convert_alpha(),
             (300, 600))
         text_slovar = {'positions': size_master.repos_and_resize((0, 920)),
                        'win': self.win,
@@ -644,7 +726,7 @@ class Colber:
         self.fs_time_objs['t2'] = RText(text2_slovar.copy())
         self.fs_time_objs['t2'].move_right(size_master.resize_one(910))
         text2_slovar['positions'] = size_master.repos_and_resize((1000, 80))
-        text2_slovar['text'] = '10000000'
+        text2_slovar['text'] = str(self.need_score)
         self.fs_time_objs['t3'] = RText(text2_slovar.copy())
         self.fs_time_objs['t3'].move_right(size_master.resize_one(910))
         self.fs_time_objs['keyb'] = RKeyboard(rkeyb_slovar.copy(),
@@ -667,7 +749,7 @@ class Colber:
                 size_master.resize_one(300))
             base_slovar['positions'] = size_master.repos_and_resize((poses1[i], 250))
             base_slovar['picture'] = size_master.transform(
-                pygame.image.load('res/colber/first/t_' + str(i + 1) +
+                pygame.image.load('res/colber/' + pref + '/t_' + str(i + 1) +
                                   '.png'), (300, 300))
             self.fst_pics.append(RBase(base_slovar))
         for i in range(5):
@@ -678,25 +760,25 @@ class Colber:
             self.fs_time_objs['t_items2'].list[i].move_center(
                 size_master.resize_one(300))
 
-    # Инициализируем магазин урон первого уровня
-    def fs_half_init(self, size_master):
+    # Инициализируем half первого уровня
+    def fs_half_init(self, size_master, pref):
         f1 = size_master.transform(
             pygame.image.load(
-                'res/colber/first/half/pic.png').convert(), (1920, 1080))
+                'res/colber/' + pref + '/half/pic.png').convert_alpha(), (1920, 1080))
         f2 = size_master.transform(
             pygame.image.load(
-                'res/colber/first/half/pic2.png').convert(), (1920, 1080))
+                'res/colber/' + pref + '/half/pic2.png').convert_alpha(), (1920, 1080))
         f3 = size_master.transform(
             pygame.image.load(
-                'res/colber/first/half/pic3.png').convert(), (1920, 1080))
+                'res/colber/' + pref + '/half/pic3.png').convert_alpha(), (1920, 1080))
         self.fs_h_fields = [f1, f2, f3]
         # Картинки кнопки
         a0 = size_master.transform(
             pygame.image.load(
-                'res/colber/first/b_600_115_off.png'), (600, 115))
+                'res/colber/' + pref + '/b_600_115_off.png').convert_alpha(), (600, 115))
         a1 = size_master.transform(
             pygame.image.load(
-                'res/colber/first/b_600_115_on.png'), (600, 115))
+                'res/colber/' + pref + '/b_600_115_on.png').convert_alpha(), (600, 115))
         # Словари для интерфейса
         text_slovar = {
             'positions': size_master.repos_and_resize((0, 920)),
@@ -715,201 +797,14 @@ class Colber:
         self.fs_half_objs['exit'].set_text(text_slovar)
         self.fs_half_objs['exit'].move_center_text()
 
-    def ss_click_init(self, size_master):
-        colors = [(255, 255, 255), (200, 10, 10), (255, 255, 255)]
-        factor = size_master.get_factor()
-        a0 = size_master.transform(
-            pygame.image.load('res/colber/b_600_115_off.png').convert(), (600, 115))
-        a1 = size_master.transform(
-            pygame.image.load('res/colber/b_600_115_on.png').convert(), (600, 115))
-        a2 = size_master.transform(
-            pygame.image.load('res/colber/first/b_300_600_off.png').convert(), (300, 600))
-        a3 = size_master.transform(
-            pygame.image.load('res/colber/first/b_300_600_on.png').convert(),
-            (300, 600))
-        a4 = size_master.transform(
-            pygame.image.load('res/colber/first/b_300_600_on2.png').convert(),
-            (300, 600))
-        text_slovar = {'positions': size_master.repos_and_resize((0, 920)),
-                       'win': self.win,
-                       'font': 'res/fonts/RobotoSlab-Regular.ttf',
-                       'text_size': size_master.resize_text(
-                           'res/fonts/RobotoSlab-Regular.ttf', 0.7),
-                       'color': colors[0], 'text': 'НАЗАД'}
-        rbut_slovar = {'positions': size_master.repos_and_resize((0, 920)),
-                       'win': self.win,
-                       'size': size_master.repos_and_resize((600, 115)),
-                       'tap_buts': (1, 3), 'animations': [[a0], [a1]]}
-        rkeyb_slovar = {'positions': size_master.repos_and_resize((70, 100)),
-                        'tap_buts': (1, 3),
-                        'size': size_master.repos_and_resize((300, 600)),
-                        'win': self.win,
-                        'horizontal': True, 'indent': size_master.resize_one(70), 'kolvo': 5,
-                        'texts': ['+' + str(i) for i in self.c_effect],
-                        'animations': [[a2], [a3], [a4]]}
-        rkeyb2_slovar = {
-            'positions': size_master.repos_and_resize((70, 120)),
-            'win': self.win,
-            'font': 'res/fonts/RobotoSlab-Regular.ttf',
-            'text_size': size_master.resize_text(
-                'res/fonts/RobotoSlab-Regular.ttf', 0.7),
-            'color': colors[0], 'indent': size_master.resize_one(370)}
-        self.ss_click_objs['keyb'] = RKeyboard(rkeyb_slovar.copy(), rkeyb2_slovar.copy())
-        self.ss_click_objs['keyb'].move_center_text()
-        self.ss_click_objs['exit'] = RButton(rbut_slovar.copy())
-        self.ss_click_objs['exit'].set_text(text_slovar)
-        self.ss_click_objs['exit'].move_center_text()
-        self.ss_click_objs['c_items'] = RItemList()
-        self.ss_click_objs['c_items2'] = RItemList()
-        poses1 = [70 + 370*i for i in range(5)]
-        for i in range(5):
-            text_slovar['positions'] = size_master.repos_and_resize((poses1[i], 470))
-            text_slovar['text'] = str(self.c_bought[i][1])
-            self.ss_click_objs['c_items'].append(RText(text_slovar.copy()))
-            self.ss_click_objs['c_items'].list[i].move_center(size_master.resize_one(300))
-        for i in range(5):
-            text_slovar['positions'] = size_master.repos_and_resize((poses1[i], 570))
-            text_slovar['text'] = str(self.c_bought[i][0])
-            self.ss_click_objs['c_items2'].append(RText(text_slovar.copy()))
-            self.ss_click_objs['c_items2'].list[i].move_center(size_master.resize_one(300))
-
-    def sec_init(self, size_master):
-        self.sec_field = size_master.transform(
-            pygame.image.load('res/colber/first/field.png').convert(), (1920, 1080))
-        pic0 = size_master.transform(
-            pygame.image.load('res/colber/first/colb_noclick.png').convert(), (720, 720))
-        pic00 = size_master.transform(
-            pygame.image.load('res/colber/first/colb_noclick.png').convert(),
-            (720, 720))
-        pic1 = size_master.transform(
-            pygame.image.load('res/colber/first/colb_click.png').convert(), (720, 720))
-        pic11 = size_master.transform(
-            pygame.image.load('res/colber/first/colb_click2.png').convert(), (720, 720))
-        pos = size_master.repos_and_resize((600, 130))
-        self.sec_sprites = pygame.sprite.Group()
-        MySprite(self.sec_sprites, pos, pic0, pic00, pic1, pic11, size_master)
-        colors = [(255, 255, 255), (200, 10, 10), (255, 255, 255)]
-        factor = size_master.get_factor()
-        a0 = size_master.transform(
-            pygame.image.load('res/colber/b_600_115_off.png').convert(), (600, 115))
-        a1 = size_master.transform(
-            pygame.image.load('res/colber/b_600_115_on.png').convert(), (600, 115))
-        a3 = size_master.transform(
-            pygame.image.load('res/colber/b_500_500_off.png').convert(), (500, 500))
-        a4 = size_master.transform(
-            pygame.image.load('res/colber/b_500_500_on.png').convert(), (500, 500))
-        text_slovar = {'positions': size_master.repos_and_resize((0, 920)),
-                       'win': self.win,
-                       'font': 'res/fonts/RobotoSlab-Regular.ttf',
-                       'text_size': size_master.resize_text(
-                           'res/fonts/RobotoSlab-Regular.ttf', 0.7),
-                       'color': colors[0], 'text': 'НАЗАД'}
-        text2_slovar = {'positions': size_master.repos_and_resize((10, 10)),
-                      'win': self.win,
-                      'font': 'res/fonts/RobotoSlab-Regular.ttf',
-                      'text_size': size_master.resize_text(
-                          'res/fonts/RobotoSlab-Regular.ttf', 0.7),
-                      'color': colors[0], 'text': 'СЧЕТ:'}
-        rbut_slovar = {'positions': size_master.repos_and_resize((0, 920)),
-                       'win': self.win,
-                       'size': size_master.repos_and_resize((600, 115)),
-                       'tap_buts': (1, 3), 'animations': [[a0], [a1]]}
-        rbut2_slovar = {'positions': size_master.repos_and_resize((10, 350)),
-                       'win': self.win,
-                       'size': size_master.repos_and_resize((500, 500)),
-                       'tap_buts': (1, 3), 'animations': [[a3], [a4]]}
-        self.sec_objs['exit'] = RButton(rbut_slovar.copy())
-        self.sec_objs['exit'].set_text(text_slovar)
-        self.sec_objs['exit'].move_center_text()
-        rbut_slovar['positions'] = size_master.repos_and_resize((1320, 920))
-        text_slovar['text'] = 'ИДТИ ДАЛЬШЕ'
-        text_slovar['positions'] = size_master.repos_and_resize((1320, 920))
-        self.sec_objs['cont'] = RButton(rbut_slovar.copy())
-        self.sec_objs['cont'].set_text(text_slovar)
-        self.sec_objs['cont'].move_center_text()
-        self.sec_objs['cont'].closed = True
-        self.sec_objs['click'] = RButton(rbut2_slovar.copy())
-        rbut2_slovar['positions'] = size_master.repos_and_resize((1410, 350))
-        self.sec_objs['time'] = RButton(rbut2_slovar.copy())
-        self.sec_objs['t1'] = RText(text2_slovar.copy())
-        text2_slovar['positions'] = size_master.repos_and_resize((10, 80))
-        text2_slovar['text'] = str(self.score)
-        self.sec_objs['score'] = RText(text2_slovar.copy())
-        text2_slovar['positions'] = size_master.repos_and_resize((1000, 10))
-        text2_slovar['text'] = 'ДЛЯ ПЕРЕХОДА:'
-        self.sec_objs['t2'] = RText(text2_slovar.copy())
-        self.sec_objs['t2'].move_right(size_master.resize_one(910))
-        text2_slovar['positions'] = size_master.repos_and_resize((1000, 80))
-        text2_slovar['text'] = '100000000'
-        self.sec_objs['t3'] = RText(text2_slovar.copy())
-        self.sec_objs['t3'].move_right(size_master.resize_one(910))
-
-    def ss_time_init(self, size_master):
-        colors = [(255, 255, 255), (200, 10, 10), (255, 255, 255)]
-        factor = size_master.get_factor()
-        a0 = size_master.transform(
-            pygame.image.load('res/colber/b_600_115_off.png').convert(), (600, 115))
-        a1 = size_master.transform(
-            pygame.image.load('res/colber/b_600_115_on.png').convert(), (600, 115))
-        a2 = size_master.transform(
-            pygame.image.load('res/colber/first/b_300_600_off.png').convert(), (300, 600))
-        a3 = size_master.transform(
-            pygame.image.load('res/colber/first/b_300_600_on.png').convert(),
-            (300, 600))
-        a4 = size_master.transform(
-            pygame.image.load('res/colber/first/b_300_600_on2.png').convert(),
-            (300, 600))
-        text_slovar = {'positions': size_master.repos_and_resize((0, 920)),
-                       'win': self.win,
-                       'font': 'res/fonts/RobotoSlab-Regular.ttf',
-                       'text_size': size_master.resize_text(
-                           'res/fonts/RobotoSlab-Regular.ttf', 0.7),
-                       'color': colors[0], 'text': 'НАЗАД'}
-        rbut_slovar = {'positions': size_master.repos_and_resize((0, 920)),
-                       'win': self.win,
-                       'size': size_master.repos_and_resize((600, 115)),
-                       'tap_buts': (1, 3), 'animations': [[a0], [a1]]}
-        rkeyb_slovar = {'positions': size_master.repos_and_resize((70, 100)),
-                        'tap_buts': (1, 3),
-                        'size': size_master.repos_and_resize((300, 600)),
-                        'win': self.win,
-                        'horizontal': True, 'indent': size_master.resize_one(70), 'kolvo': 5,
-                        'texts': ['+' + str(i) for i in self.c_effect],
-                        'animations': [[a2], [a3], [a4]]}
-        rkeyb2_slovar = {
-            'positions': size_master.repos_and_resize((70, 120)),
-            'win': self.win,
-            'font': 'res/fonts/RobotoSlab-Regular.ttf',
-            'text_size': size_master.resize_text(
-                'res/fonts/RobotoSlab-Regular.ttf', 0.7),
-            'color': colors[0], 'indent': size_master.resize_one(370)}
-        self.ss_time_objs['keyb'] = RKeyboard(rkeyb_slovar.copy(), rkeyb2_slovar.copy())
-        self.ss_time_objs['keyb'].move_center_text()
-        self.ss_time_objs['exit'] = RButton(rbut_slovar.copy())
-        self.ss_time_objs['exit'].set_text(text_slovar)
-        self.ss_time_objs['exit'].move_center_text()
-        self.ss_time_objs['t_items'] = RItemList()
-        self.ss_time_objs['t_items2'] = RItemList()
-        poses1 = [70 + 370*i for i in range(5)]
-        for i in range(5):
-            text_slovar['positions'] = size_master.repos_and_resize((poses1[i], 470))
-            text_slovar['text'] = str(self.t_bought[i][1])
-            self.ss_time_objs['t_items'].append(RText(text_slovar.copy()))
-            self.ss_time_objs['t_items'].list[i].move_center(size_master.resize_one(300))
-        for i in range(5):
-            text_slovar['positions'] = size_master.repos_and_resize((poses1[i], 570))
-            text_slovar['text'] = str(self.t_bought[i][0])
-            self.ss_time_objs['t_items2'].append(RText(text_slovar.copy()))
-            self.ss_time_objs['t_items2'].list[i].move_center(size_master.resize_one(300))
-
-    def hf_prew_init(self, size_master):
+    def hf_prew_init(self, size_master, pref):
         # Картинки кнопки
         a0 = size_master.transform(
             pygame.image.load(
-                'res/colber/first/b_600_115_off.png'), (600, 115))
+                'res/colber/' + pref + '/b_600_115_off.png').convert_alpha(), (600, 115))
         a1 = size_master.transform(
             pygame.image.load(
-                'res/colber/first/b_600_115_on.png'), (600, 115))
+                'res/colber/' + pref + '/b_600_115_on.png').convert_alpha(), (600, 115))
         # Словари для интерфейса
         text_box_slovar = {
             'positions': size_master.repos_and_resize((0, 220)),
@@ -921,7 +816,7 @@ class Colber:
             'text': '''Вам повезло, впервые включился режим "Полминутки безум
             ия". В течение следующих 30 секунд ваши УРОН и У/СЕК увеличены в 
             некоторое количество раз. Режим можно выключить в настройках. 
-            Ренкомендуем сделать это людям, страдающим неврологическими 
+            Рекомендуем сделать это людям, страдающим неврологическими 
             заболеваниями или головной болью''',
             'auto': 0,
             'window_width': size_master.resize_one(1700),
@@ -977,20 +872,62 @@ class Colber:
                 return 1
 
     def progress(self):
-        return
+        self.draw_field(self.prog_field)
+        # Проверка и прорисовка элементов
+        mouse_pos = pygame.mouse.get_pos()
+        self.progress_objs['t1'].new_text(self.progress_objs['t1'].text.split()[0] + ' ' + str(self.level))
+        self.progress_objs['t2'].new_text(self.progress_objs['t2'].text.split()[0] + ' ' + str(self.all))
+        for i in self.progress_objs:
+            try:
+                self.progress_objs[i].check(mouse_pos, 1)
+            except Exception:
+                pass
+            self.progress_objs[i].draw()
+        # События - выход, нажатие на кнопки
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return -1
+            if self.progress_objs['exit'].is_tap(event,
+                                             pygame.mouse.get_pos(), 1):
+                # Кнопка выход
+                return 4
+            if self.progress_objs['part'].is_tap(event, pygame.mouse.get_pos(), 1):
+                if self.allow_parts == 'T':
+                    self.allow_parts = 'F'
+                    self.progress_objs['part'].new_text('ВКЛЮЧИТЬ ЧАСТИЦЫ')
+                else:
+                    self.allow_parts = 'T'
+                    self.progress_objs['part'].new_text('ВЫКЛЮЧИТЬ ЧАСТИЦЫ')
+                return
+            if self.progress_objs['sound'].is_tap(event, pygame.mouse.get_pos(), 1):
+                if self.allow_sound == 'T':
+                    self.allow_sound = 'F'
+                    self.progress_objs['sound'].new_text('ВКЛЮЧИТЬ ЗВУК')
+                else:
+                    self.allow_sound = 'T'
+                    self.progress_objs['sound'].new_text('ВЫКЛЮЧИТЬ ЗВУК')
+                return
+            if self.progress_objs['half'].is_tap(event, pygame.mouse.get_pos(), 1):
+                if self.allow_half == 'T':
+                    self.allow_half = 'F'
+                    self.progress_objs['half'].new_text('ВКЛЮЧИТЬ ПОЛМИНУТКИ')
+                else:
+                    self.allow_half = 'T'
+                    self.progress_objs['half'].new_text('ВЫКЛЮЧИТЬ ПОЛМИНУТКИ')
+                return
 
     # Первый уровень - действие
     def first(self):
         if time.time() - self.half_start >= 120:
             ran_res = random.choice([True, True, False, False, False])
-            if ran_res:
+            if ran_res and self.allow_half == 'T':
                 self.half_time = time.time()
                 return 1003
             else:
                 self.half_start = time.time()
         self.draw_field(self.first_field)
         # Проверка на большой набранный счет (Закончили или нет уровень)
-        if self.all_score >= 10000000:
+        if self.all_score >= self.need_score:
             self.draw_field(self.first_field2)
             self.first_objs['t3'].new_text('0')
             self.first_objs['t3'].pos[0] = self.size_master.resize_one(1000)
@@ -1019,7 +956,7 @@ class Colber:
                 self.time_check = time_now
                 self.write_file()
             # Обновляем полоску жизней и надпись осталось
-            per = 10000000 - self.all_score
+            per = self.need_score - self.all_score
             self.first_objs['t3'].new_text(str(per))
             self.first_objs['t3'].pos[0] = self.size_master.resize_one(1000)
             self.first_objs['t3'].move_right(
@@ -1051,6 +988,7 @@ class Colber:
                             # Обновляем переменные
                             self.score += self.sc_click
                             self.all_score += self.sc_click
+                            self.all += 1
             if self.first_objs['exit'].is_tap(event,
                                               pygame.mouse.get_pos(), 1):
                 self.time_flag = True  # Остановим время при выходе
@@ -1108,7 +1046,6 @@ class Colber:
             if event.type == pygame.QUIT:
                 return -1
             if self.fs_click_objs['exit'].is_tap(event, pygame.mouse.get_pos(), 1):
-                self.half_start = time.time()
                 return 4
             # Проверка покупки
             tap = self.fs_click_objs['keyb'].taps(event,
@@ -1177,7 +1114,6 @@ class Colber:
                 return -1
             if self.fs_time_objs['exit'].is_tap(event,
                                                 pygame.mouse.get_pos(), 1):
-                self.half_start = time.time()
                 return 4
             tap = self.fs_time_objs['keyb'].taps(event,
                                                      pygame.mouse.get_pos(),
@@ -1207,144 +1143,10 @@ class Colber:
                 self.fs_time_objs['t_items2'].list[num].move_center(
                     self.size_master.resize_one(300))
 
-    def sec(self):
-        self.draw_field(self.sec_field)
-        mouse_pos = pygame.mouse.get_pos()
-        if self.time_flag:
-            self.time_flag = False
-            self.time_check = time.time()
-        time_now = time.time()
-        if self.time_check <= time_now - 0.5:
-            self.score += self.sc_time // 2
-            self.time_check = time_now
-            self.write_file()
-        if self.score >= 10000000:
-            self.sec_objs['cont'].closed = False
-        else:
-            self.sec_objs['cont'].closed = True
-        self.sec_objs['score'].new_text(str(self.score))
-        self.sec_sprites.update({})
-        for i in self.sec_objs:
-            try:
-                self.sec_objs[i].check(mouse_pos, 1)
-            except Exception:
-                pass
-            self.sec_objs[i].draw()
-        self.sec_sprites.draw(self.win)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                return -1
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                self.sec_sprites.update({'pos':mouse_pos, 'event':0})
-                with open('res/colber/noname', 'r') as f:
-                    result = f.read()
-                    if result == '1':
-                        self.score += self.sc_click
-            if self.sec_objs['exit'].is_tap(event, pygame.mouse.get_pos(), 1):
-                self.time_flag = True
-                return 4
-            if self.sec_objs['click'].is_tap(event, pygame.mouse.get_pos(), 1):
-                return 1001
-            if self.sec_objs['time'].is_tap(event, pygame.mouse.get_pos(), 1):
-                return 1002
-
-    def ss_click(self):
-        self.draw_field(self.sec_field)
-        mouse_pos = pygame.mouse.get_pos()
-        time_now = time.time()
-        if self.time_check <= time_now - 0.5:
-            self.score += self.sc_time // 2
-            self.time_check = time_now
-            self.write_file()
-        for i in range(5):
-            if self.score < self.c_bought[i][1]:
-                self.ss_click_objs['keyb'].buts[i].set_animation(0)
-                self.ss_click_objs['keyb'].buts[i].closed = True
-            else:
-                self.ss_click_objs['keyb'].buts[i].closed = False
-        for i in self.ss_click_objs:
-            try:
-                self.ss_click_objs[i].check(mouse_pos, 1)
-            except Exception:
-                pass
-            self.ss_click_objs[i].draw()
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                return -1
-            if self.ss_click_objs['exit'].is_tap(event, pygame.mouse.get_pos(), 1):
-                return 4
-            tap = self.ss_click_objs['keyb'].taps(event,
-                                                     pygame.mouse.get_pos(),
-                                                     animation=2, delay=3)
-            if tap[0]:
-                num = tap[1]
-                poses1 = [70 + 370 * i for i in range(5)]
-                sc = self.c_bought[num][1]
-                self.score -= sc
-                if sc * 0.05 >= 1:
-                    self.c_bought[num][1] += sc * 0.05
-                    self.c_bought[num][1] = int(self.c_bought[num][1])
-                else:
-                    self.c_bought[num][1] += 1
-                self.c_bought[num][0] += 1
-                self.sc_click += self.c_effect[num]
-                self.ss_click_objs['c_items'].list[num].new_text(str(self.c_bought[num][1]))
-                self.ss_click_objs['c_items'].list[num].pos = self.size_master.repos_and_resize([poses1[num], 470])
-                self.ss_click_objs['c_items'].list[num].move_center(self.size_master.resize_one(300))
-                self.ss_click_objs['c_items2'].list[num].new_text(str(self.c_bought[num][0]))
-                self.ss_click_objs['c_items2'].list[num].pos = self.size_master.repos_and_resize([poses1[num], 570])
-                self.ss_click_objs['c_items2'].list[num].move_center(self.size_master.resize_one(300))
-
-    def ss_time(self):
-        self.draw_field(self.sec_field)
-        mouse_pos = pygame.mouse.get_pos()
-        time_now = time.time()
-        if self.time_check <= time_now - 0.5:
-            self.score += self.sc_time // 2
-            self.time_check = time_now
-            self.write_file()
-        for i in range(5):
-            if self.score < self.t_bought[i][1]:
-                self.ss_time_objs['keyb'].buts[i].set_animation(0)
-                self.ss_time_objs['keyb'].buts[i].closed = True
-            else:
-                self.ss_time_objs['keyb'].buts[i].closed = False
-        for i in self.ss_time_objs:
-            try:
-                self.ss_time_objs[i].check(mouse_pos, 1)
-            except Exception:
-                pass
-            self.ss_time_objs[i].draw()
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                return -1
-            if self.ss_time_objs['exit'].is_tap(event, pygame.mouse.get_pos(), 1):
-                return 4
-            tap = self.ss_time_objs['keyb'].taps(event,
-                                                     pygame.mouse.get_pos(),
-                                                     animation=2, delay=3)
-            if tap[0]:
-                num = tap[1]
-                poses1 = [70 + 370 * i for i in range(5)]
-                sc = self.t_bought[num][1]
-                self.score -= sc
-                if sc * 0.05 >= 1:
-                    self.t_bought[num][1] += sc * 0.05
-                    self.t_bought[num][1] = int(self.t_bought[num][1])
-                else:
-                    self.t_bought[num][1] += 1
-                self.t_bought[num][0] += 1
-                self.sc_time += self.t_effect[num]
-                self.ss_time_objs['t_items'].list[num].new_text(str(self.t_bought[num][1]))
-                self.ss_time_objs['t_items'].list[num].pos = self.size_master.repos_and_resize([poses1[num], 470])
-                self.ss_time_objs['t_items'].list[num].move_center(self.size_master.resize_one(300))
-                self.ss_time_objs['t_items2'].list[num].new_text(str(self.t_bought[num][0]))
-                self.ss_time_objs['t_items2'].list[num].pos = self.size_master.repos_and_resize([poses1[num], 570])
-                self.ss_time_objs['t_items2'].list[num].move_center(self.size_master.resize_one(300))
 
     def fs_half(self):
         if self.half_first == '0':
-            self.hf_prew_init(self.size_master)
+            self.hf_prew_init(self.size_master, pref='first')
             self.half_first = '1'
             return 1234
         if self.half_flag > 11:
@@ -1397,8 +1199,6 @@ class Colber:
                     self.score += add
                     self.all_score += add
 
-    def ss_half(self):
-        pass
 
     def hf_prew(self):
         self.draw_field(self.first_field)

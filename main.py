@@ -84,7 +84,6 @@ def main():
             window = pygame.display.set_mode(my_wsm.get_size(), pygame.FULLSCREEN | pygame.DOUBLEBUF)
         else:
             window = pygame.display.set_mode(my_wsm.get_size(), pygame.DOUBLEBUF)
-        window.set_alpha(None)
         pygame.display.set_caption('US-f-CT')
         pygame.display.set_icon(pygame.image.load('res/icon.png'))
         my_gui = GUI(window, my_wsm)
@@ -250,9 +249,10 @@ def main():
                 if progr:
                     res = game.progress()
                     if res == 4:
-                        progr = False
-                        menu = True
-                        continue
+                        os.startfile(os.getcwd() + '/main.py')
+                        break
+                    if res == -1:
+                        break
                 if play:
                     res = game.choose_lvl()
                     if res == -1:
