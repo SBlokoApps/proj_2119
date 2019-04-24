@@ -338,7 +338,10 @@ class WSMGUI:
             if event.type == pygame.QUIT:
                 return -1
             if self.third_objs['ok'].is_tap(event, mouse_pos, 1):
-                SetFileAttributes('res/screen_sets.txt', 128)
+                try:
+                    SetFileAttributes('res/screen_sets.txt', 128)
+                except Exception:
+                    pass
                 with open('res/screen_sets.txt', 'w') as f:
                     print(self.screen_size[0], file=f)
                     print(self.screen_size[1], file=f)

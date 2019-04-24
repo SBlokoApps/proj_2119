@@ -1,13 +1,18 @@
+# Берем всё из наших файлов + библиотеку ос, она нужна для игры
 from window_size_master import *
 from user_interface import *
 from colber import Colber
 import os
 
 
+# Загоним всё в функцию, чтобы хоть чуть-чуть быстрее работало
 def main():
     pygame.init()
     pygame.event.set_allowed([QUIT, MOUSEBUTTONDOWN, KEYDOWN, KEYUP])
     clock = pygame.time.Clock()
+    # Читаем файлик с настройками экрана, если в нём написано, что программа
+    # была запущена хоть раз, мы не запустим ВСМ(это несколько ниже).
+    # Если там написано другое, или файлика просто нет, мы запустим ВСМ
     try:
         with open('res/screen_sets.txt', 'r') as f:
             vse = f.read().split()
@@ -17,24 +22,41 @@ def main():
             new_open = True
     except Exception:
         new_open = True
+    # Маленькая переменная, которая не позволит запустить основную программу
+    # при выходе из ВСМ раньше времени
     breaked = False
     if new_open:
+        # Мы запускаем ВСМ
         wsm_screen = pygame.display.set_mode((400, 300), pygame.DOUBLEBUF)
         pygame.display.set_caption('WindowSizeMaster')
         pygame.display.set_icon(pygame.image.load('res/wsm/icon.png'))
+        # Логические переменные для разных окон
         wsm0 = True
         wsm1 = False
         wsm3 = False
         wsm2 = False
+        # Класс интерфейса для ВСМ
         user_wsm = WSMGUI(wsm_screen)
+        # Главный цикл. В нем разные экраны программы (между которыми мы
+        # переходим кнопками дальше и назад) разделены логическими переменными
+        # Принцип работы всех экранов одинаковый. Рисуем интерфейс через
+        # метод класса ВСМГУИ, принимаем нажатия, получаем ответ -
+        # какую кнопку нажали. Либо переходим назад, либо выходим из
+        # программы, либо переходим на следующий экран
+        # Комментировать только нулевой экран буду,
+        # остальные в исключительных случаях
         while True:
+            # Прорисуем фон
             user_wsm.print_field()
             if wsm0:
+                # Прорисуем нулевой экран, получим от него результат нажатия
+                # кнопки, если оно было
                 res = user_wsm.zero_screen()
-                if res == -1 or res == 4:
+                if res == -1 or res == 4:  # Выход или крестик - прерываем
+                    # работу всей программы
                     breaked = True
                     break
-                if res == 1:
+                if res == 1:  # Кнопка дальше - переходим на новый экран
                     wsm0 = False
                     wsm1 = True
                     continue
@@ -75,19 +97,32 @@ def main():
                     continue
                 if res == 1:
                     break
+            # Запускаем часы, чтобы они подождали, обновляем дисплей
             clock.tick(60)
             pygame.display.update()
+        # Если мы вышли из ВСМ, надо удалить весь его интерфейс,
+        # который ест много памяти
         del user_wsm
+    # Запустим класс ВСМ (Уже не гуи)
     my_wsm = WSM()
+    # Если программа не была прервана ранее, запускаем основное окно
     if not(breaked):
-        if my_wsm.get_fullscreen():
-            window = pygame.display.set_mode(my_wsm.get_size(), pygame.FULLSCREEN | pygame.DOUBLEBUF)
+        pd = pygame.display
+        if my_wsm.get_fullscreen():  # В всм смотрим,
+            # полноэкранный режим у нас, или нет
+            window = pd.set_mode(my_wsm.get_size(),
+                                 pygame.FULLSCREEN | pygame.DOUBLEBUF)
         else:
-            window = pygame.display.set_mode(my_wsm.get_size(), pygame.DOUBLEBUF)
-        pygame.display.set_caption('US-f-CT')
-        pygame.display.set_icon(pygame.image.load('res/icon.png'))
-        my_gui = GUI(window, my_wsm)
-        my_gui.master_init('menu', 'sets', 'games', 'scors_menu', 'simple', 'vers_menu', 'set_scors', 'about_pr', 'graph')
+            window = pd.set_mode(my_wsm.get_size(), pygame.DOUBLEBUF)
+        # Настроим иконку и название
+        pd.set_caption('US-f-CT')
+        pd.set_icon(pygame.image.load('res/icon.png'))
+        my_gui = GUI(window, my_wsm)  # Создаем класс интерфейса
+        # основной программы, инициализируем окна программы
+        my_gui.master_init('menu', 'sets', 'games', 'scors_menu',
+                           'simple', 'vers_menu', 'set_scors',
+                           'about_pr', 'graph')
+        # Логика для главного цикла
         menu = True
         settings = False
         set_scors = False
@@ -97,10 +132,11 @@ def main():
         scors_menu = False
         games = False
         simple = False
+        # Переменная запуска игры колба головного мозга
         game_colber = True
+        # Принцип работы главного цикла абсолютно аналогичен циклу из всм,
+        # посмотрите комментарий перед ним
         while True:
-            if True:
-                break
             my_gui.print_field()
             if menu:
                 res = my_gui.menu()
@@ -138,7 +174,8 @@ def main():
                     games = False
                     menu = True
                     continue
-                if res == 1:
+                if res == 1:  # Если запустили игру, даем переменной тру,
+                    # закрываем главный цикл программы
                     game_colber = True
                     break
             if settings:
@@ -171,7 +208,9 @@ def main():
                     settings = True
                     set_scors = False
                     continue
-                if res == 1:
+                if res == 1:  # Кнопка открытия файла настроек. Открываем его
+                    # через ос. А потом закрываем программу, тк настройки
+                    # надо будет обновить
                     os.startfile(os.getcwd() + '/res/settings.txt')
                     break
             if about_pr:
@@ -194,7 +233,9 @@ def main():
                     graph = False
                     settings = True
                     continue
-                if res == 1:
+                if res == 1:  # Открываем всм. Для этого надо сбросить
+                    # настройки всм и перезапустить программу, тогда всм
+                    # откроется сам при запуске
                     my_wsm.reset_sets()
                     os.startfile(os.getcwd() + '/main.py')
                     break
@@ -220,7 +261,9 @@ def main():
                     continue
             clock.tick(60)
             pygame.display.update()
+        # Если мы запускаем игру Колба головного мозга
         if game_colber:
+            # Сначала удаляем интерфейс основной программы, он ест память
             del my_gui
             menu = True
             progr = False
@@ -229,13 +272,18 @@ def main():
             shop_t = False
             half = False
             half_prew = False
+            # Класс игры. Там интерфейс и куча всего
             game = Colber(my_wsm, window)
+            # Очередной главный цикл, принцип работы которого за 2 раза
+            # вы могли запомнить, повторять его описание не буду
             while True:
                 if menu:
                     res = game.menu()
                     if res == -1:
                         break
-                    if res == 4:
+                    if res == 4:  # Если мы выходим из игры: мы уже выкинули
+                        # всё об основной пограмме из памяти, поэтому
+                        # придется перезапустить программу через ос
                         os.startfile(os.getcwd() + '/main.py')
                         break
                     if res == 2:
@@ -248,11 +296,16 @@ def main():
                         continue
                 if progr:
                     res = game.progress()
-                    if res == 4:
+                    if res == 44:  # Если совершены обновления настроек,
+                        # перезапускаем программу
                         os.startfile(os.getcwd() + '/main.py')
                         break
                     if res == -1:
                         break
+                    if res == 4:
+                        progr = False
+                        menu = True
+                        continue
                 if play:
                     res = game.choose_lvl()
                     if res == -1:
@@ -317,4 +370,5 @@ def main():
     pygame.quit()
 
 
+# Не забудем запустить эту функцию
 main()

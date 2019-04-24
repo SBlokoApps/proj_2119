@@ -63,7 +63,7 @@ class RButton:
         # она добавится в конец, угадайте её номер
         self.animations.append(name)
 
-    def set_inv(self, bool):
+    def set_inv(self, bool):  # Задаем кнопке невидимость при прорисовке
         self.inv = bool
 
     def del_animation(self, num):  # yдалит картинку анимации по её номеру
@@ -722,13 +722,15 @@ class RTitleBox:
             i.move_center(needed_size)
 
 
+# Аналог группы спрайтов, нужен для быстрой прорисовки кучи объектов.
+# Изначально его не было, но так проще было прописать картинки в магазине игры
 class RItemList:
     def __init__(self):
-        self.list = []
+        self.list = []  # Там хранятся объекты интерфейса
 
-    def append(self, item):
+    def append(self, item):  # Так их добавляют
         self.list.append(item)
 
-    def draw(self):
+    def draw(self):  # Так они рисуются. Просто пробегаем по списку
         for i in self.list:
             i.draw()

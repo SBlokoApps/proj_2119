@@ -175,6 +175,7 @@ class Colber:
         self.sc_click = 1
         self.sc_time = 0
         self.level = 1
+        self.set_is_upgrade = False
         # Параметры магазинов
         self.c_bought = [[0, 10], [0, 400], [0, 5000], [0, 12000], [0, 100000]]
         self.c_effect = [2, 40, 100, 200, 400]
@@ -216,6 +217,9 @@ class Colber:
         self.half_time = 0
         self.half_flag = 0
         self.half_start = 0
+        self.s_click_but = pygame.mixer.Sound('res/colber/sounds/but.ogg')
+        self.s_click_colb = pygame.mixer.Sound('res/colber/sounds/colb.ogg')
+        self.s_click_shop = pygame.mixer.Sound('res/colber/sounds/shop.ogg')
 
     # Метод чтения настроек и прогресса из файла
     def read_file(self):
@@ -426,14 +430,14 @@ class Colber:
         self.progress_objs['part'].move_center_text()
         # Меняем словарь, кнопка настроек
         rbut_slovar['positions'] = size_master.repos_and_resize((920, 433))
-        text_slovar['text'] = 'ВКЛЮЧИТЬ ЗВУК'
+        text_slovar['text'] = 'ВЫКЛЮЧИТЬ ЗВУК'
         text_slovar['positions'] = size_master.repos_and_resize((920, 433))
         self.progress_objs['sound'] = RButton(rbut_slovar.copy())
         self.progress_objs['sound'].set_text(text_slovar)
         self.progress_objs['sound'].move_center_text()
         # Меняем словарь, кнопка выхода
         rbut_slovar['positions'] = size_master.repos_and_resize((920, 603))
-        text_slovar['text'] = 'ВКЛЮЧИТЬ ПОЛМИНУТКИ'
+        text_slovar['text'] = 'ВЫКЛЮЧИТЬ ПОЛМИНУТКИ'
         text_slovar['positions'] = size_master.repos_and_resize((920, 603))
         self.progress_objs['half'] = RButton(rbut_slovar.copy())
         self.progress_objs['half'].set_text(text_slovar)
@@ -453,6 +457,18 @@ class Colber:
         self.progress_objs['reset'] = RButton(rbut_slovar.copy())
         self.progress_objs['reset'].set_text(text_slovar)
         self.progress_objs['reset'].move_center_text()
+        if self.allow_parts == 'F':
+            self.progress_objs['part'].new_text('ВКЛЮЧИТЬ ЧАСТИЦЫ')
+        else:
+            self.progress_objs['part'].new_text('ВЫКЛЮЧИТЬ ЧАСТИЦЫ')
+        if self.allow_sound == 'F':
+            self.progress_objs['sound'].new_text('ВКЛЮЧИТЬ ЗВУК')
+        else:
+            self.progress_objs['sound'].new_text('ВЫКЛЮЧИТЬ ЗВУК')
+        if self.allow_half == 'F':
+            self.progress_objs['half'].new_text('ВКЛЮЧИТЬ ПОЛМИНУТКИ')
+        else:
+            self.progress_objs['half'].new_text('ВЫКЛЮЧИТЬ ПОЛМИНУТКИ')
 
     # Инициализируем первый уровень
     def first_init(self, size_master, pref):
@@ -858,10 +874,12 @@ class Colber:
             if self.menu_objs['exit'].is_tap(event,
                                              pygame.mouse.get_pos(), 1):
                 # Кнопка выход
+                self.s_click_but.play()
                 return 4
             if self.menu_objs['progress'].is_tap(event,
                                                  pygame.mouse.get_pos(), 1):
                 # Кнопка настройки
+                self.s_click_but.play()
                 return 2
             if self.menu_objs['play'].is_tap(event,
                                              pygame.mouse.get_pos(), 1):
@@ -869,6 +887,7 @@ class Colber:
                 # Инициализация (сама понимает, надо ли) уровня
                 self.new_level(self.level, menu=True)
                 self.half_start = time.time()
+                self.s_click_but.play()
                 return 1
 
     def progress(self):
@@ -890,6 +909,9 @@ class Colber:
             if self.progress_objs['exit'].is_tap(event,
                                              pygame.mouse.get_pos(), 1):
                 # Кнопка выход
+                if self.set_is_upgrade == True:
+                    self.write_file()
+                    return 44
                 return 4
             if self.progress_objs['part'].is_tap(event, pygame.mouse.get_pos(), 1):
                 if self.allow_parts == 'T':
@@ -898,7 +920,8 @@ class Colber:
                 else:
                     self.allow_parts = 'T'
                     self.progress_objs['part'].new_text('ВЫКЛЮЧИТЬ ЧАСТИЦЫ')
-                return
+                self.s_click_shop.play()
+                self.set_is_upgrade = True
             if self.progress_objs['sound'].is_tap(event, pygame.mouse.get_pos(), 1):
                 if self.allow_sound == 'T':
                     self.allow_sound = 'F'
@@ -906,7 +929,8 @@ class Colber:
                 else:
                     self.allow_sound = 'T'
                     self.progress_objs['sound'].new_text('ВЫКЛЮЧИТЬ ЗВУК')
-                return
+                self.s_click_shop.play()
+                self.set_is_upgrade = True
             if self.progress_objs['half'].is_tap(event, pygame.mouse.get_pos(), 1):
                 if self.allow_half == 'T':
                     self.allow_half = 'F'
@@ -914,7 +938,13 @@ class Colber:
                 else:
                     self.allow_half = 'T'
                     self.progress_objs['half'].new_text('ВЫКЛЮЧИТЬ ПОЛМИНУТКИ')
-                return
+                self.s_click_shop.play()
+                self.set_is_upgrade = True
+            if self.progress_objs['reset'].is_tap(event, pygame.mouse.get_pos(), 1):
+                self.s_click_shop.play()
+                with open('res/colber_sets.txt', 'w') as f:
+                    print('0', file=f)
+
 
     # Первый уровень - действие
     def first(self):
@@ -989,20 +1019,25 @@ class Colber:
                             self.score += self.sc_click
                             self.all_score += self.sc_click
                             self.all += 1
+                            self.s_click_colb.play()
             if self.first_objs['exit'].is_tap(event,
                                               pygame.mouse.get_pos(), 1):
                 self.time_flag = True  # Остановим время при выходе
+                self.s_click_but.play()
                 return 4
             if self.first_objs['click'].is_tap(event,
                                                pygame.mouse.get_pos(), 1):
                 if self.start:
+                    self.s_click_shop.play()
                     return 1001  # При переходе в магазины не останавливаем
             if self.first_objs['time'].is_tap(event,
                                               pygame.mouse.get_pos(), 1):
                 if self.start:
+                    self.s_click_shop.play()
                     return 1002
             if self.first_objs['cont'].is_tap(event,
                                               pygame.mouse.get_pos(), 1):
+                self.s_click_but.play()
                 self.pervii_raz = True
                 self.new_level(2)
                 return 1
@@ -1046,6 +1081,7 @@ class Colber:
             if event.type == pygame.QUIT:
                 return -1
             if self.fs_click_objs['exit'].is_tap(event, pygame.mouse.get_pos(), 1):
+                self.s_click_but.play()
                 return 4
             # Проверка покупки
             tap = self.fs_click_objs['keyb'].taps(event,
@@ -1078,6 +1114,7 @@ class Colber:
                     self.size_master.repos_and_resize([poses1[num], 720])
                 self.fs_click_objs['c_items2'].list[num].move_center(
                     self.size_master.resize_one(300))
+                self.s_click_shop.play()
 
     # Магазин у/сек - действие, аналогичен магазину выше,
     # комментировать не буду
@@ -1114,6 +1151,7 @@ class Colber:
                 return -1
             if self.fs_time_objs['exit'].is_tap(event,
                                                 pygame.mouse.get_pos(), 1):
+                self.s_click_but.play()
                 return 4
             tap = self.fs_time_objs['keyb'].taps(event,
                                                      pygame.mouse.get_pos(),
@@ -1142,6 +1180,7 @@ class Colber:
                     self.size_master.repos_and_resize([poses1[num], 720])
                 self.fs_time_objs['t_items2'].list[num].move_center(
                     self.size_master.resize_one(300))
+                self.s_click_shop.play()
 
 
     def fs_half(self):
@@ -1187,6 +1226,7 @@ class Colber:
                 return -1
             if self.fs_half_objs['exit'].is_tap(event,
                                                  pygame.mouse.get_pos(), 1):
+                self.s_click_but.play()
                 return 4
             if event.type == pygame.MOUSEBUTTONDOWN:
                 ms = pygame.mouse.get_pos()
@@ -1198,6 +1238,7 @@ class Colber:
                     add = int(self.sc_click * 1.5)
                     self.score += add
                     self.all_score += add
+                    self.s_click_colb.play()
 
 
     def hf_prew(self):
@@ -1227,4 +1268,5 @@ class Colber:
             if self.hf_prew_objs['exit'].is_tap(event,
                                                  pygame.mouse.get_pos(), 1):
                 self.half_time = time.time()
+                self.s_click_but.play()
                 return 4

@@ -62,7 +62,7 @@ class GUI:
                        'size': size_master.repos_and_resize((800, 150)),
                        'tap_buts': (1, 3), 'animations': [[a0], [a2]]}
         base_slovar = {'positions': size_master.repos_and_resize((860, 230)),
-                       'picture': size_master.transform(pygame.image.load(prefix + 'us-f-ct_image.png').convert(), (1000, 812)),
+                       'picture': size_master.transform(pygame.image.load(prefix + 'us-f-ct_image.png').convert_alpha(), (1000, 812)),
                        'win': self.win}
         self.menu_objs['picture'] = RBase(base_slovar.copy())
         self.menu_objs['title1'] = RTitle(title_slovar.copy())
