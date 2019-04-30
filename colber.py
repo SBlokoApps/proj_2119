@@ -1,3 +1,4 @@
+# 4.1.1
 from project_R import *
 import time
 import random
@@ -443,6 +444,8 @@ class Colber:
         self.progress_objs['sound'] = RButton(rbut_slovar.copy())
         self.progress_objs['sound'].set_text(text_slovar)
         self.progress_objs['sound'].move_center_text()
+        self.progress_objs['sound'].closed = True
+        self.progress_objs['sound'].inv = True
         # Меняем словарь, кнопка выхода
         rbut_slovar['positions'] = size_master.repos_and_resize((920, 603))
         text_slovar['text'] = 'ВЫКЛЮЧИТЬ ПОЛМИНУТКИ'
@@ -955,6 +958,11 @@ class Colber:
                                                  pygame.mouse.get_pos(), 1):
                 # Кнопка выход
                 if self.set_is_upgrade:
+                    try:
+                        if self.set_is_reset:
+                            return 44
+                    except Exception:
+                        pass
                     self.write_file()
                     return 44
                 return 4
@@ -992,8 +1000,11 @@ class Colber:
             if self.progress_objs['reset'].is_tap(event,
                                                   pygame.mouse.get_pos(), 1):
                 self.s_click_shop.play()
+                print(1)
                 with open('res/colber_sets.txt', 'w') as f:
                     print('0', file=f)
+                self.set_is_upgrade = True
+                self.set_is_reset = True
 
     # Первый уровень - действие
     def first(self):

@@ -1,3 +1,4 @@
+# 4.1.1
 # Класс счетчика баллов
 class GreatScorer:
     def __init__(self):

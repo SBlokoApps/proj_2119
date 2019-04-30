@@ -1,3 +1,4 @@
+# 4.1.1
 # Берем всё из наших файлов + библиотеку ос, она нужна для игры
 from window_size_master import *
 from user_interface import *
